@@ -12,4 +12,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
 	@Query("SELECT u FROM Usuario u WHERE u.correo = :correo")
     Optional<Usuario> findUsuarioByCorreo(@Param("correo") String correo);
+	
+	@Query("DELETE FROM Usuario u WHERE u.correo = :correo")
+    void deleteUsuarioByCorreo(@Param("correo") String correo);
 }

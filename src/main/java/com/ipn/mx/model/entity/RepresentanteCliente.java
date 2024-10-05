@@ -1,8 +1,5 @@
 package com.ipn.mx.model.entity;
 
-import com.ipn.mx.model.enumerated.CategoriaTransportista;
-import com.ipn.mx.model.enumerated.EstatusTransportista;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;

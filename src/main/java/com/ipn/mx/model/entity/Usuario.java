@@ -55,4 +55,5 @@ public class Usuario implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)
     private RolUsuario rol;
+
 }
