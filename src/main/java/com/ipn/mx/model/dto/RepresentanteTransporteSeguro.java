@@ -18,4 +18,15 @@ public class RepresentanteTransporteSeguro extends UsuarioSeguro {
 	private EstatusRepTrans estatusRepTrans;
 	private EmpresaAutotransporte empresaTransporte;
 	
+	public static RepresentanteTransporteSeguro usuarioSeguroToRepresentanteTransporteSeguro(UsuarioSeguro us) {
+		return RepresentanteTransporteSeguro.builder()
+				.idUsuario(us.getIdUsuario())
+				.correo(us.getCorreo())
+				.nombre(us.getNombre())
+				.primerApellido(us.getPrimerApellido())
+				.segundoApellido(us.getSegundoApellido())
+				.telefono(us.getTelefono())
+				.rol(us.getRol())
+				.build();
+	}
 }

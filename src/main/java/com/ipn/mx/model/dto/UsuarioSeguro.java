@@ -1,5 +1,6 @@
 package com.ipn.mx.model.dto;
 
+import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.RolUsuario;
 
 import lombok.AllArgsConstructor;
@@ -20,5 +21,17 @@ public class UsuarioSeguro {
     private String correo;
     private String telefono;
     private RolUsuario rol;
+    
+    public static UsuarioSeguro usuarioToUsuarioSeguro(Usuario u) {
+		return UsuarioSeguro.builder()
+				.idUsuario(u.getIdUsuario())
+				.correo(u.getCorreo())
+				.nombre(u.getNombre())
+				.primerApellido(u.getPrimerApellido())
+				.segundoApellido(u.getSegundoApellido())
+				.telefono(u.getTelefono())
+				.rol(u.getRol())
+				.build();
+    }
 
 }

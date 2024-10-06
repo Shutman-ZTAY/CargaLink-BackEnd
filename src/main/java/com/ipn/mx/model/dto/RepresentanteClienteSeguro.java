@@ -15,4 +15,16 @@ public class RepresentanteClienteSeguro extends UsuarioSeguro {
 
 	private Empresa empresaCliente;
 	
+	public static RepresentanteClienteSeguro usuarioSeguroToRepresentanteClienteSeguro(UsuarioSeguro us) {
+		return RepresentanteClienteSeguro.builder()
+				.idUsuario(us.getIdUsuario())
+				.correo(us.getCorreo())
+				.nombre(us.getNombre())
+				.primerApellido(us.getPrimerApellido())
+				.segundoApellido(us.getSegundoApellido())
+				.telefono(us.getTelefono())
+				.rol(us.getRol())
+				.build();
+	}
+	
 }

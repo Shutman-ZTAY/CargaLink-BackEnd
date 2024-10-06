@@ -1,6 +1,12 @@
 package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import com.ipn.mx.model.enumerated.RolUsuario;
 
@@ -16,16 +22,18 @@ import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@ToString
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "Usuario")
-public class Usuario implements Serializable {
+public class Usuario implements Serializable, UserDetails {
 	
 	private static final long serialVersionUID = 1L;
 
@@ -55,5 +63,37 @@ public class Usuario implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false)
     private RolUsuario rol;
+    
+
+	@Override
+	public Collection<? extends GrantedAuthority> getAuthorities() {
+		return List.of(new SimpleGrantedAuthority(rol.name()));
+	}
+	
+	@Override
+	public boolean isEnabled() {
+		// TODO Auto-generated method stub
+		return UserDetails.super.isEnabled();
+	}
+	
+	@Override
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+	
+	@Override
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+	
+	@Override
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+
+	@Override
+	public String getUsername() {
+		return idUsuario;
+	}
 
 }
