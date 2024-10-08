@@ -10,7 +10,7 @@ public interface AuthService {
 	
 	AuthResponse login(LoginUsuario loginUsuario);
 	AuthResponse registerTransportista(Transportista transportista);
-	AuthResponse registerReprTransporte(RepresentanteTransporte transportista);
-	AuthResponse registerReprCliente(RepresentanteCliente transportista);
+	AuthResponse registerReprTransporte(RepresentanteTransporte representanteTransporte);
+	AuthResponse registerReprCliente(RepresentanteCliente representanteCliente);
 	
 }

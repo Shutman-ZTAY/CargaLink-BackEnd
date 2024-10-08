@@ -93,7 +93,7 @@ public class Usuario implements Serializable, UserDetails {
 
 	@Override
 	public String getUsername() {
-		return idUsuario;
+		return correo;
 	}
 
 }
