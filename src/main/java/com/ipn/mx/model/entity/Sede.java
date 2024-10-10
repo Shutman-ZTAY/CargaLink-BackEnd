@@ -32,10 +32,10 @@ public class Sede implements Serializable {
     @Column(name = "idSede", nullable = false)
     private Integer idSede;
 
-    @Column(name = "nombre", length = 45, nullable = true)
+    @Column(name = "nombre", length = 45, nullable = false)
     private String nombre;
 
-    @Column(name = "direccion", length = 100, nullable = true)
+    @Column(name = "direccion", length = 100, nullable = false)
     private String direccion;
 
     @ManyToOne(cascade = CascadeType.REMOVE)
