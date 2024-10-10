@@ -3,8 +3,6 @@ package com.ipn.mx.service.implementation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +12,7 @@ import com.ipn.mx.model.dto.LoginUsuario;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Transportista;
+import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.repository.EmpresaRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.UsuarioRepository;
@@ -43,9 +42,9 @@ public class AuthServiceImpl implements AuthService {
 						loginUsuario.getCorreo(), loginUsuario.getPassword()
 						)
 				);	   
-		UserDetails ud = ur.findUsuarioByCorreo(loginUsuario.getCorreo()).
+		Usuario u = ur.findUsuarioByCorreo(loginUsuario.getCorreo()).
 				orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
-		String token = js.getToken(ud);
+		String token = js.getToken(u);
 		return AuthResponse.builder()
 				.token(token)
 				.build();
