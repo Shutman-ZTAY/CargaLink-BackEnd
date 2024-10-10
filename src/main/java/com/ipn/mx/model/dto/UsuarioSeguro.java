@@ -22,4 +22,16 @@ public class UsuarioSeguro {
     private String telefono;
     private RolUsuario rol;
     
+    public static UsuarioSeguro usuarioToUsuarioSeguro(Usuario u) {
+		return UsuarioSeguro.builder()
+				.idUsuario(u.getIdUsuario())
+				.correo(u.getCorreo())
+				.nombre(u.getNombre())
+				.primerApellido(u.getPrimerApellido())
+				.segundoApellido(u.getSegundoApellido())
+				.telefono(u.getTelefono())
+				.rol(u.getRol())
+				.build();
+    }
+
 }
