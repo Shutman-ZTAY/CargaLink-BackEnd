@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.dto.UpdateTransportista;
 import com.ipn.mx.model.dto.UpdateTransportistaRepresentante;
 import com.ipn.mx.model.dto.UsuarioId;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
-import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
@@ -32,7 +32,6 @@ import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
 
-//TODO PROBAR ENDPOINTS
 @RestController
 @RequestMapping("/transportista")
 public class TransportistasController {
@@ -77,7 +76,7 @@ public class TransportistasController {
 		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
 			}
 		} else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("AJNSDIKLWABJHDSKBHJAEFB");
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
 		}
 	}
 
@@ -101,9 +100,9 @@ public class TransportistasController {
 	}
 	
 	private List<TransportistaSeguro> findTransportistasByEmpresa(String razonSocial) {
-		List<Sede> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
+		List<SedeDTO> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
 		List<Integer> idSedes = new ArrayList<>();
-		for (Sede sede : ls) {
+		for (SedeDTO sede : ls) {
 			idSedes.add(sede.getIdSede());
 		}
 		return tr.findAllTransportistasByAllSedes(idSedes);
