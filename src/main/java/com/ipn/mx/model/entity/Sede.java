@@ -1,6 +1,9 @@
 package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -11,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,8 +42,12 @@ public class Sede implements Serializable {
     @Column(name = "direccion", length = 100, nullable = false)
     private String direccion;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne//(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "empresaTransporte", referencedColumnName = "transporteRazon", nullable = false, 
                 foreignKey = @ForeignKey(name = "fk_transporteRazon"))
     private EmpresaAutotransporte empresaTransporte;
+    
+    @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Transportista> transportistas;
 }

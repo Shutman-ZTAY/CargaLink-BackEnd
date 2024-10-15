@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.SedeUpd;
 import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.dto.UpdateTransportista;
 import com.ipn.mx.model.dto.UpdateTransportistaRepresentante;
@@ -100,9 +100,9 @@ public class TransportistasController {
 	}
 	
 	private List<TransportistaSeguro> findTransportistasByEmpresa(String razonSocial) {
-		List<SedeDTO> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
+		List<SedeUpd> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
 		List<Integer> idSedes = new ArrayList<>();
-		for (SedeDTO sede : ls) {
+		for (SedeUpd sede : ls) {
 			idSedes.add(sede.getIdSede());
 		}
 		return tr.findAllTransportistasByAllSedes(idSedes);

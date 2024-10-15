@@ -2,7 +2,6 @@ package com.ipn.mx.model.entity;
 
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 import com.ipn.mx.model.enumerated.EstatusTransportista;
-import com.ipn.mx.model.enumerated.RolUsuario;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -43,7 +42,7 @@ public class Transportista extends Usuario {
     @Column(name = "estatusTransportista")
     private EstatusTransportista estatusTransportista;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne//(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "sede", referencedColumnName = "idSede", 
     			foreignKey = @ForeignKey(name = "idSedeT"))
     private Sede sede;

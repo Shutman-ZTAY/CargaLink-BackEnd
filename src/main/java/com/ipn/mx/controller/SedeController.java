@@ -1,6 +1,5 @@
 package com.ipn.mx.controller;
 
-import java.security.Security;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.SedeUpd;
 import com.ipn.mx.model.dto.SedeId;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Sede;
@@ -28,8 +27,6 @@ import com.ipn.mx.model.repository.SedeRepository;
 @RestController
 @RequestMapping("/representante/sede")
 public class SedeController {
-
-	//TODO La aplicación web permitirá a los representantes de empresas de autotransporte podrán añadir, modificar y eliminar sus sedes.
 	
 	@Autowired
 	private SedeRepository sedeRepository;
@@ -62,7 +59,7 @@ public class SedeController {
 		if (isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
 				RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-				List<SedeDTO> ls = sedeRepository.findAllSedesByEmpresaTransporte(rt.getEmpresaTransporte().getRazonSocial());
+				List<SedeUpd> ls = sedeRepository.findAllSedesByEmpresaTransporte(rt.getEmpresaTransporte().getRazonSocial());
 				return ResponseEntity.status(HttpStatus.CREATED).body(ls);
 			} catch (Exception e) {
 				String messageError = "Error interno en el servidor: " + e.getMessage(); 
@@ -74,13 +71,13 @@ public class SedeController {
 	}
 	
 	@PutMapping("")
-	public ResponseEntity<?> updateSede(@RequestBody SedeDTO sedeDTO){
+	public ResponseEntity<?> updateSede(@RequestBody SedeUpd sedeUpd){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Sede s;
 			try {
-				s = sedeRepository.findById(sedeDTO.getIdSede()).get();
+				s = sedeRepository.findById(sedeUpd.getIdSede()).get();
 			} catch (Exception e) {
 				return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(e.getMessage());
 			}
@@ -88,17 +85,17 @@ public class SedeController {
 			String newNombre = s.getNombre();
 			String newDireccion = s.getDireccion();
 			
-			if(s.getNombre() != null)
-				newNombre = s.getNombre();
-			if(s.getDireccion() != null)
-				newDireccion = s.getDireccion();
+			if(sedeUpd.getNombre() != null)
+				newNombre = sedeUpd.getNombre();
+			if(sedeUpd.getDireccion() != null)
+				newDireccion = sedeUpd.getDireccion();
 			
 			try {
 				sedeRepository.updateSede(idSede, newNombre, newDireccion);
-				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+				return ResponseEntity.status(HttpStatus.OK).body(null);
 			} catch (Exception e) {
 				String messageError = "Error interno en el servidor: " + e.getMessage(); 
-				return ResponseEntity.status(HttpStatus.CREATED).body(messageError);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(messageError);
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -114,7 +111,7 @@ public class SedeController {
 				return ResponseEntity.status(HttpStatus.OK).body(null);
 			} catch (Exception e) {
 				String messageError = "Error interno en el servidor: " + e.getMessage(); 
-				return ResponseEntity.status(HttpStatus.CREATED).body(messageError);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(messageError);
 			}
 		} else {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
