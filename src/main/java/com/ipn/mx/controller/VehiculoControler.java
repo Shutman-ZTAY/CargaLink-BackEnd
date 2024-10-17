@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.entity.Vehiculo;
 import com.ipn.mx.model.enumerated.RolUsuario;
+import com.ipn.mx.model.enumerated.TipoVehiculo;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.VehiculoRepository;
@@ -45,12 +46,13 @@ public class VehiculoControler {
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
-				if (perteneceAlUsuario(u, vehiculo.getSede())) {
+				vehiculo = setTipoVehiculo(vehiculo);
+				if (perteneceAlUsuario(u, vehiculo.getSede()) && !vehiculoRepository.existsById(vehiculo.getPlaca())) {
 					vehiculoRepository.save(vehiculo);
 					return ControllerUtils.createdResponse();
 				} else {
-					String mensaje = "Cada vehiculo debe tener una sede asignada";
-					return ControllerUtils.badGatewayResponse(mensaje);
+					String mensaje = "Atributos no validos";
+					return ControllerUtils.badRequestResponse(mensaje);
 				}
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -80,12 +82,14 @@ public class VehiculoControler {
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
+				vehiculo = setTipoVehiculo(vehiculo);
+				vehiculo.setPlaca(id);
 				if (perteneceAlUsuario(u, vehiculo)) {
 					vehiculo.setPlaca(id);
 					vehiculoRepository.save(vehiculo);
 					return ControllerUtils.okResponse();
 				} else 
-					return ControllerUtils.badGatewayResponse("Recurso inaccesible");
+					return ControllerUtils.badRequestResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -105,7 +109,7 @@ public class VehiculoControler {
 					vehiculoRepository.deleteById(vehiculo.getPlaca());
 					return ControllerUtils.okResponse();
 				} else 
-					return ControllerUtils.badGatewayResponse();
+					return ControllerUtils.badRequestResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -116,7 +120,7 @@ public class VehiculoControler {
 	
 	private boolean perteneceAlUsuario(Usuario u, Sede sede){
 		RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-		Optional<SedeDTO> os = sedeRepository.findByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
+		Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
 		if(os.isEmpty())
 			return false;
 		else
@@ -141,5 +145,13 @@ public class VehiculoControler {
 			idSedes.add(sede.getIdSede());
 		}
 		return vehiculoRepository.findAllVehiculosBySedes(idSedes);
+	}
+	
+	private Vehiculo setTipoVehiculo(Vehiculo vehiculo){
+		if (vehiculo instanceof CamionUnitario)
+			vehiculo.setTipo(TipoVehiculo.CAMION_UNITARIO);
+		else
+			vehiculo.setTipo(TipoVehiculo.TRACTOCAMION);
+		return vehiculo;
 	}
 }

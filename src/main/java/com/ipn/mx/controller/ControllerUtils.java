@@ -22,8 +22,8 @@ public class ControllerUtils {
 		return ResponseEntity.status(HttpStatus.OK).body(null);
 	}
 	
-	public static ResponseEntity<?> badGatewayResponse(){
-		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("No se puede accceder al recurso");
+	public static ResponseEntity<?> badRequestResponse(){
+		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(null);
 	}
 
 	public static ResponseEntity<?> unauthorisedResponse() {
@@ -45,8 +45,8 @@ public class ControllerUtils {
         }
 	}
 
-	public static ResponseEntity<?> badGatewayResponse(String mensaje) {
-		return ResponseEntity.status(HttpStatus.CREATED).body(mensaje);
+	public static ResponseEntity<?> badRequestResponse(String mensaje) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
 	}
 	
 }

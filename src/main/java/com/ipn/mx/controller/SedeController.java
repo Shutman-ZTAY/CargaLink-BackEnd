@@ -93,7 +93,7 @@ public class SedeController {
 					return ControllerUtils.exeptionsResponse(e);
 				}
 			} else 
-				return ControllerUtils.badGatewayResponse();
+				return ControllerUtils.badRequestResponse();
 		} else {
 			return ControllerUtils.unauthorisedResponse();
 		}
@@ -108,7 +108,7 @@ public class SedeController {
 						sedeRepository.deleteById(id);
 						return ControllerUtils.okResponse();
 				} else 
-					return ControllerUtils.badGatewayResponse();
+					return ControllerUtils.badRequestResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -122,7 +122,7 @@ public class SedeController {
 			return false;
 		}
 		RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-		Optional<SedeDTO> os = sedeRepository.findByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
+		Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
 		if(os.isEmpty())
 			return false;
 		else

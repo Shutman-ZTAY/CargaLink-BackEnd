@@ -67,7 +67,7 @@ public class Semirremolque implements Serializable {
     @Column(name = "noLlantas", nullable = true)
     private Integer noLlantas;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "sedeId", referencedColumnName = "idSede", nullable = true,
                 foreignKey = @ForeignKey(name = "fk_idSedeSR"))
     private Sede sede;

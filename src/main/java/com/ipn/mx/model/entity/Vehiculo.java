@@ -3,6 +3,8 @@ package com.ipn.mx.model.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.MarcaVehiculo;
 import com.ipn.mx.model.enumerated.TipoVehiculo;
@@ -31,6 +33,14 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "Vehiculo")
+@JsonTypeInfo(
+	    use = JsonTypeInfo.Id.NAME, 
+	    include = JsonTypeInfo.As.PROPERTY, 
+	    property = "tipo")
+@JsonSubTypes({
+	    @JsonSubTypes.Type(value = Vehiculo.class, name = "TRACTOCAMION"),
+	    @JsonSubTypes.Type(value = CamionUnitario.class, name = "CAMION_UNITARIO")
+})
 public class Vehiculo implements Serializable {
 	private static final long serialVersionUID = 1L;
 	

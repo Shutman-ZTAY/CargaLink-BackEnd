@@ -54,7 +54,7 @@ public class TransportistasController {
 			try {
 				if (tr.existsById(null)) {
 					String mensaje = "Ya existe este usuario";
-					return ControllerUtils.badGatewayResponse(mensaje);
+					return ControllerUtils.badRequestResponse(mensaje);
 				}
 				if(transportista.getSede() != null 
 						&& !sr.existsById(transportista.getSede().getIdSede()) ) {
@@ -62,11 +62,11 @@ public class TransportistasController {
 						sr.save(transportista.getSede());
 					} catch (Exception e) {
 						String mensaje = "Sede incompleta, registre los de mas datos";
-						return ControllerUtils.badGatewayResponse(mensaje);
+						return ControllerUtils.badRequestResponse(mensaje);
 					}
 				} else if (transportista.getSede() == null && !sr.existsById(transportista.getSede().getIdSede())) {
 					String mensaje = "El transportista debe asociarse a una sede";
-					return ControllerUtils.badGatewayResponse(mensaje); 
+					return ControllerUtils.badRequestResponse(mensaje); 
 				}
 				transportista.setPassword(pe.encode(transportista.getPassword()));
 				tr.save(transportista);
@@ -143,7 +143,7 @@ public class TransportistasController {
 					tr.deleteById(id);
 					return ResponseEntity.ok(null);
 				} else {
-					return ControllerUtils.badGatewayResponse();
+					return ControllerUtils.badRequestResponse();
 				}
 			} catch (Exception e) {
 		        return ControllerUtils.exeptionsResponse(e);
@@ -195,7 +195,7 @@ public class TransportistasController {
 	
 	private boolean perteneceAlUsuario(Usuario u, Sede sede){
 		RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-		Optional<SedeDTO> os = sr.findByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
+		Optional<SedeDTO> os = sr.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
 		if(os.isEmpty())
 			return false;
 		else

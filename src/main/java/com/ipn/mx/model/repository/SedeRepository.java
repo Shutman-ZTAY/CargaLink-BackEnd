@@ -15,13 +15,13 @@ import jakarta.transaction.Transactional;
 
 public interface SedeRepository extends JpaRepository<Sede, Integer> {
 
-	@Query("SELECT new com.ipn.mx.model.dto.SedeUpd(s.idSede, s.nombre, s.direccion) "
+	@Query("SELECT new com.ipn.mx.model.dto.SedeDTO(s.idSede, s.nombre, s.direccion) "
 			+ "FROM Sede s WHERE s.empresaTransporte.razonSocial= :razonSocial")
 	List<SedeDTO> findAllSedesByEmpresaTransporte(@Param("razonSocial")String razonSocial);
 
-	@Query("SELECT new com.ipn.mx.model.dto.SedeUpd(s.idSede, s.nombre, s.direccion) "
+	@Query("SELECT new com.ipn.mx.model.dto.SedeDTO(s.idSede, s.nombre, s.direccion) "
 			+ "FROM Sede s WHERE s.empresaTransporte.razonSocial= :razonSocial AND s.idSede= :idSede")
-	Optional<SedeDTO> findByEmpresaAndId(
+	Optional<SedeDTO> findSedeByEmpresaAndId(
 			@Param("idSede")Integer idSede,
 			@Param("razonSocial")String razonSocial);
 	
