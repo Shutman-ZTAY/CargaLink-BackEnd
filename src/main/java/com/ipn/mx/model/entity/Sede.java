@@ -50,4 +50,8 @@ public class Sede implements Serializable {
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Transportista> transportistas;
+    
+    @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Vehiculo> vehiculos;
 }

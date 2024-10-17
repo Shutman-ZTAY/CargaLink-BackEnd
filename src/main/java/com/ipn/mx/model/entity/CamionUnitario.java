@@ -34,15 +34,6 @@ public class CamionUnitario extends Vehiculo{
 	
 	private static final long serialVersionUID = 1L;
 
-    @Column(name = "largo", precision = 4, scale = 2, nullable = true)
-    private BigDecimal largo;
-
-    @Column(name = "ancho", precision = 4, scale = 2, nullable = true)
-    private BigDecimal ancho;
-
-    @Column(name = "alto", precision = 4, scale = 2, nullable = true)
-    private BigDecimal alto;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "tipoCamion", nullable = true)
     private TipoCamion tipoCamion;

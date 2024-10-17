@@ -72,7 +72,7 @@ public class JwtServiceImpl implements JwtService {
 				.claims(extraClaims)
 				.subject(usuario.getUsername())
 				.issuedAt(new Date(System.currentTimeMillis()))
-				.expiration(new Date(System.currentTimeMillis()+1000*60*24))	//Los tokens expiran un dia despues
+				.expiration(new Date(System.currentTimeMillis()+1000*60*60*24))
 				.signWith(getKey())
 				.compact();
 	}

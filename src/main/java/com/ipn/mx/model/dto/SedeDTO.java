@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SedeUpd {
+public class SedeDTO {
 	
 	private Integer idSede;
     private String nombre;

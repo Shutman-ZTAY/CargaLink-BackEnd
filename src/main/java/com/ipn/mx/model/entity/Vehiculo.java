@@ -7,13 +7,17 @@ import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.MarcaVehiculo;
 import com.ipn.mx.model.enumerated.TipoVehiculo;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,6 +46,9 @@ public class Vehiculo implements Serializable {
 
     @Column(name = "noLlantas", nullable = true)
     private Integer noLlantas;
+    
+    @Column(name = "largo", precision = 4, scale = 2, nullable = true)
+    private BigDecimal largo;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "marca", nullable = true)
@@ -57,5 +64,10 @@ public class Vehiculo implements Serializable {
 
     @Column(name = "modelo", length = 45, nullable = true)
     private String modelo;
+    
+    @ManyToOne
+    @JoinColumn(name = "sedeId", referencedColumnName = "idSede", nullable = false,
+                foreignKey = @ForeignKey(name = "fk_idSedeVh"))
+    private Sede sede;
 
 }
