@@ -23,7 +23,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@ToString(callSuper = true)
 @Entity
 @Table(name = "Transportista")
 @PrimaryKeyJoinColumn(name = "usuarioId", referencedColumnName = "idUsuario")
