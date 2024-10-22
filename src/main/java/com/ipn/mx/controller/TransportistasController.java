@@ -2,25 +2,27 @@ package com.ipn.mx.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.dto.UpdateTransportista;
 import com.ipn.mx.model.dto.UpdateTransportistaRepresentante;
-import com.ipn.mx.model.dto.UsuarioId;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Transportista;
@@ -32,9 +34,8 @@ import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
 
-//TODO PROBAR ENDPOINTS
 @RestController
-@RequestMapping("/transportista")
+@RequestMapping("")
 public class TransportistasController {
 
 	@Autowired
@@ -46,16 +47,15 @@ public class TransportistasController {
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
 
-	@PostMapping("/representante/transporte/nuevo/transportista")
-	public ResponseEntity<?> createTransportista(@RequestBody Transportista transportista){
+	@PostMapping("/representante/transporte/transportista")
+	public ResponseEntity<?> createTransportista(@RequestBody(required = true) Transportista transportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			transportista.setRol(RolUsuario.TRANSPORTISTA);
 			try {
-				//TODO preguntarle a Alan si desde el front va a mandar el id o si debe hacer el metodo "existByDireccion para SedeRepository"
 				if (tr.existsById(null)) {
 					String mensaje = "Ya existe este usuario";
-					return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(mensaje);
+					return ControllerUtils.badRequestResponse(mensaje);
 				}
 				if(transportista.getSede() != null 
 						&& !sr.existsById(transportista.getSede().getIdSede()) ) {
@@ -63,59 +63,53 @@ public class TransportistasController {
 						sr.save(transportista.getSede());
 					} catch (Exception e) {
 						String mensaje = "Sede incompleta, registre los de mas datos";
-						return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(mensaje);
+						return ControllerUtils.badRequestResponse(mensaje);
 					}
 				} else if (transportista.getSede() == null && !sr.existsById(transportista.getSede().getIdSede())) {
 					String mensaje = "El transportista debe asociarse a una sede";
-					return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(mensaje); 
+					return ControllerUtils.badRequestResponse(mensaje); 
 				}
 				transportista.setPassword(pe.encode(transportista.getPassword()));
 				tr.save(transportista);
-				return ResponseEntity.status(HttpStatus.CREATED).body(null);
+				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
-				String mensajeError = "Error interno en el servidor: " + e.getMessage();
-		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
+		        return ControllerUtils.exeptionsResponse(e);
 			}
 		} else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("AJNSDIKLWABJHDSKBHJAEFB");
+			return ControllerUtils.unauthorisedResponse();
 		}
 	}
 
-	@GetMapping("/representante/transporte/obtener/transportista")
-	public ResponseEntity<?> findAllTransportistasByRepresentante(){
+	@GetMapping("/representante/transporte/transportista")
+	public ResponseEntity<?> findAllTransportistasByRepresentante(@RequestParam(required = false) String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
-			RepresentanteTransporte rtAuth = (RepresentanteTransporte) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			Usuario usr = (Usuario) auth.getPrincipal();
+			RepresentanteTransporte rt;
 			try {
-				rtAuth = rtr.findById(rtAuth.getIdUsuario()).get();
-				List<TransportistaSeguro> l = findTransportistasByEmpresa(rtAuth.getEmpresaTransporte().getRazonSocial());
-				return ResponseEntity.ok(l);
+				if (idRepresentanteTrans == null)
+					rt = rtr.findById(usr.getIdUsuario()).get();
+				else 
+					rt = rtr.findById(idRepresentanteTrans).get();
+					
+				List<TransportistaSeguro> l = findTransportistasByEmpresa(rt.getEmpresaTransporte().getRazonSocial());
+				return ControllerUtils.okResponse(l);
 			} catch (Exception e) {
-				return ResponseEntity
-						.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.body("Error interno en el servidor: " + e.getMessage());
+				return ControllerUtils.exeptionsResponse(e);
 			}
 		}else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ControllerUtils.unauthorisedResponse();
 		}
 	}
 	
-	private List<TransportistaSeguro> findTransportistasByEmpresa(String razonSocial) {
-		List<Sede> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
-		List<Integer> idSedes = new ArrayList<>();
-		for (Sede sede : ls) {
-			idSedes.add(sede.getIdSede());
-		}
-		return tr.findAllTransportistasByAllSedes(idSedes);
-	}
-
-	@PutMapping("/representante/transporte/modificar/transportista")
+	@PutMapping("/representante/transporte/transportista/{id}")
 	public ResponseEntity<?> updateTransportistaFromRepresentante(
-			@RequestBody UpdateTransportistaRepresentante updateTransportistaRepresentante){
+			@PathVariable String id,
+			@RequestBody(required = true) UpdateTransportistaRepresentante updateTransportistaRepresentante){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
-			Transportista tbd = tr.findById(updateTransportistaRepresentante.getIdUsuario()).get();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			Transportista tbd = tr.findById(id).get();
 
 			Integer newExperiencia = tbd.getExperiencia();
 			CategoriaTransportista newCategoria = tbd.getCategoria();
@@ -131,8 +125,7 @@ public class TransportistasController {
 				try {
 					sr.save(updateTransportistaRepresentante.getSede());
 				} catch (Exception e) {
-					String mensaje = "Sede incompleta, registre los de mas datos";
-					return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(mensaje);
+					return ControllerUtils.exeptionsResponse(e);
 				}
 			}
 			
@@ -140,38 +133,38 @@ public class TransportistasController {
 				tr.updateTransportistaFromRepresentante(tbd.getIdUsuario(), newExperiencia, newCategoria, newSede);
 				return ResponseEntity.ok(null);
 			} catch (Exception e) {
-				return ResponseEntity
-						.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.body(e.getMessage());
+				return ControllerUtils.exeptionsResponse(e);
 			}
 		} else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ControllerUtils.unauthorisedResponse();
 		}
 	}
 	
-	@DeleteMapping("/representante/transporte/borrar/transportista")
-	public ResponseEntity<?> deleteTransportista(@RequestBody UsuarioId transportistaId){
+	@DeleteMapping("/representante/transporte/transportista/{id}")
+	public ResponseEntity<?> deleteTransportista(@PathVariable String id){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if (isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
-			tr.deleteById(transportistaId.getIdUsuario());
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
-				return ResponseEntity.ok(null);
+				if (perteneceAlUsuario((Usuario) auth.getPrincipal(), tr.findById(id).orElse(null))) {
+					tr.deleteById(id);
+					return ResponseEntity.ok(null);
+				} else {
+					return ControllerUtils.badRequestResponse();
+				}
 			} catch (Exception e) {
-				String mensajeError = "Error interno en el servidor";
-		        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
+		        return ControllerUtils.exeptionsResponse(e);
 			}
 		}else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ControllerUtils.unauthorisedResponse();
 		}
 	}
 
-	
 	//TODO Buscar como cambiar la contraseña con tal de que el usuario se vuelva a loguear
-	@PutMapping("/modificar")
+	@PutMapping("transportista/editar")
 	public ResponseEntity<?> updateTransportista(@RequestBody UpdateTransportista updateTransportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		
-		if (isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
 			Transportista transportistaAuth = (Transportista) auth.getPrincipal();
 			transportistaAuth = tr.findById(transportistaAuth.getIdUsuario()).get();
 			String newPassword = transportistaAuth.getPassword();
@@ -189,24 +182,48 @@ public class TransportistasController {
 				tr.updateTransportista(transportistaAuth.getIdUsuario(), newPassword, newTelefono, newEstatus);
 				return ResponseEntity.ok(null);
 			} catch (Exception e) {
-				return ResponseEntity
-						.status(HttpStatus.INTERNAL_SERVER_ERROR)
-						.body("Error interno en el servidor: " + e.getMessage());
+				return ControllerUtils.exeptionsResponse(e);
 			}
 			
 		} else {
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+			return ControllerUtils.unauthorisedResponse();
 		}
 	}
 	
-	private boolean isAuthorised(Authentication auth, RolUsuario rol) {
-		Usuario u = (Usuario) auth.getPrincipal();
-		if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }else if (u.getRol() != rol) {
-        	return false;
-        }else {
-        	return true;
-        }
+	private List<TransportistaSeguro> findTransportistasByEmpresa(String razonSocial) {
+		List<SedeDTO> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
+		List<Integer> idSedes = new ArrayList<>();
+		for (SedeDTO sede : ls) {
+			idSedes.add(sede.getIdSede());
+		}
+		return tr.findAllTransportistasByAllSedes(idSedes);
+	}
+	
+	private boolean perteneceAlUsuario(Usuario u, Sede sede){
+		if (sede == null) {
+			return false;
+		}
+		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
+			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
+			Optional<SedeDTO> os = sr.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
+			if(!os.isEmpty())
+				return true;
+			else
+				return false;
+		} else {
+			return true;
+		}
+	}
+	
+	private boolean perteneceAlUsuario(Usuario u, Transportista transportista){
+		if (transportista == null) {
+			return false;
+		}
+		Optional<Transportista> ot = tr.findById(transportista.getIdUsuario());
+		if(!ot.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
+			return perteneceAlUsuario(u, ot.get().getSede());
+		else
+			return false;
+		
 	}
 }
