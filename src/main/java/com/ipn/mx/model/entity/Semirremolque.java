@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.TipoSemirremolque;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -68,7 +67,7 @@ public class Semirremolque implements Serializable {
     private Integer noLlantas;
 
     @ManyToOne
-    @JoinColumn(name = "sedeId", referencedColumnName = "idSede", nullable = true,
+    @JoinColumn(name = "sedeId", referencedColumnName = "idSede", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idSedeSR"))
     private Sede sede;
 }

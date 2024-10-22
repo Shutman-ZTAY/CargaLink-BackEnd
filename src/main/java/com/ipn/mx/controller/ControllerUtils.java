@@ -38,10 +38,10 @@ public class ControllerUtils {
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (auth == null || !auth.isAuthenticated()) {
             return false;
-        }else if (u.getRol() != rol) {
-        	return false;
-        }else {
+        }else if (u.getRol() == rol || u.getRol() == RolUsuario.ADMINISTRADOR) {
         	return true;
+        }else {
+        	return false;
         }
 	}
 

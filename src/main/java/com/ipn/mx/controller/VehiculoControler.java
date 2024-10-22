@@ -2,6 +2,7 @@ package com.ipn.mx.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class VehiculoControler {
 	private SedeRepository sedeRepository;
 
 	@PostMapping("")
-	public ResponseEntity<?> createVehiculo(@RequestBody Vehiculo vehiculo) {
+	public ResponseEntity<?> createVehiculo(@RequestBody(required = true) Vehiculo vehiculo) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -51,8 +52,7 @@ public class VehiculoControler {
 					vehiculoRepository.save(vehiculo);
 					return ControllerUtils.createdResponse();
 				} else {
-					String mensaje = "Atributos no validos";
-					return ControllerUtils.badRequestResponse(mensaje);
+					return ControllerUtils.badRequestResponse();
 				}
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -62,12 +62,15 @@ public class VehiculoControler {
 	}
 	
 	@GetMapping("")
-	public ResponseEntity<?> viewAllVehiculos() {
+	public ResponseEntity<?> viewAllVehiculos(@RequestBody(required = false) String idRepresentanteAutotransporte) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
-				List<Vehiculo> lv = findTransportistasByRepresentante(u);
+				if(u.getRol() == RolUsuario.ADMINISTRADOR)
+					u = rtr.findById(idRepresentanteAutotransporte)
+					.orElseThrow(() -> new NoSuchElementException("No se encontró el Usuario con ID: " + idRepresentanteAutotransporte));
+				List<Vehiculo> lv = findVehiculosByRepresentante(u);
 				return ControllerUtils.okResponse(lv);
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -77,7 +80,9 @@ public class VehiculoControler {
 	}
 	
 	@PutMapping("/{id}")
-	public ResponseEntity<?> updateVehiculo(@PathVariable String id, @RequestBody Vehiculo vehiculo) {
+	public ResponseEntity<?> updateVehiculo(
+			@PathVariable String id, 
+			@RequestBody(required = true) Vehiculo vehiculo) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -86,6 +91,7 @@ public class VehiculoControler {
 				vehiculo.setPlaca(id);
 				if (perteneceAlUsuario(u, vehiculo)) {
 					vehiculo.setPlaca(id);
+					vehiculo = getUpdateVehiculo(vehiculo);
 					vehiculoRepository.save(vehiculo);
 					return ControllerUtils.okResponse();
 				} else 
@@ -119,25 +125,33 @@ public class VehiculoControler {
 	}
 	
 	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-		Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-		if(os.isEmpty())
+		if (sede == null) {
 			return false;
+		}
+		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
+			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
+			Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
+			if(!os.isEmpty())
+				return true;
+			else
+				return false;
+		} else {
+			return true;
+		}
+	}
+	
+	private boolean perteneceAlUsuario(Usuario u, Vehiculo vehiculo){
+		if (vehiculo == null) {
+			return false;
+		}
+		Optional<Vehiculo> ov = vehiculoRepository.findById(vehiculo.getPlaca());
+		if(!ov.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
+			return perteneceAlUsuario(u, ov.get().getSede());
 		else
 			return true;
 	}
 	
-	private boolean perteneceAlUsuario(Usuario u, Vehiculo vehiculo){
-		RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-		Optional<Vehiculo> ov = vehiculoRepository.findById(vehiculo.getPlaca());
-		if(ov.isEmpty())
-			return false;
-		else
-			return perteneceAlUsuario(u, ov.get().getSede());
-		
-	}
-	
-	private List<Vehiculo> findTransportistasByRepresentante(Usuario usuario) {
+	private List<Vehiculo> findVehiculosByRepresentante(Usuario usuario) {
 		RepresentanteTransporte rt = rtr.findById(usuario.getIdUsuario()).get();
 		List<SedeDTO> ls = sedeRepository.findAllSedesByEmpresaTransporte(rt.getEmpresaTransporte().getRazonSocial());
 		List<Integer> idSedes = new ArrayList<>();
@@ -153,5 +167,37 @@ public class VehiculoControler {
 		else
 			vehiculo.setTipo(TipoVehiculo.TRACTOCAMION);
 		return vehiculo;
+	}
+	
+	private Vehiculo getUpdateVehiculo(Vehiculo vehiculo) {
+		Vehiculo vUpdate = vehiculoRepository.findById(vehiculo.getPlaca()).get();
+		if (vehiculo.getPeso() != null) 
+			vUpdate.setPeso(vehiculo.getPeso());
+		if (vehiculo.getNoEjes() != null) 
+			vUpdate.setNoEjes(vehiculo.getNoEjes());
+		if (vehiculo.getNoLlantas() != null) 
+			vUpdate.setNoLlantas(vehiculo.getNoLlantas());
+		if (vehiculo.getLargo() != null) 
+			vUpdate.setLargo(vehiculo.getLargo());
+		if (vehiculo.getMarca() != null) 
+			vUpdate.setMarca(vehiculo.getMarca());
+		if (vehiculo.getTipo() != null) 
+			vUpdate.setTipo(vehiculo.getTipo());
+		if (vehiculo.getEstatus() != null) 
+			vUpdate.setEstatus(vehiculo.getEstatus());
+		if (vehiculo.getModelo() != null) 
+			vUpdate.setModelo(vehiculo.getModelo());
+		if (vehiculo.getSede() != null) 
+			vUpdate.setSede(vehiculo.getSede());
+		
+		if (vehiculo instanceof CamionUnitario) {
+			CamionUnitario cuUpdate = (CamionUnitario) vUpdate;
+			CamionUnitario cuArg = (CamionUnitario) vehiculo;
+			if (cuArg.getTipoCamion() != null)
+				cuUpdate.setTipoCamion(cuArg.getTipoCamion());
+			return cuUpdate;
+		}
+		
+		return vUpdate;
 	}
 }

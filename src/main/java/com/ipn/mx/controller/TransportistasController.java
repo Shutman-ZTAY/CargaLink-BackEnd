@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
@@ -47,7 +48,7 @@ public class TransportistasController {
 	private RepresentanteTransporteRepository rtr;
 
 	@PostMapping("/representante/transporte/transportista")
-	public ResponseEntity<?> createTransportista(@RequestBody Transportista transportista){
+	public ResponseEntity<?> createTransportista(@RequestBody(required = true) Transportista transportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			transportista.setRol(RolUsuario.TRANSPORTISTA);
@@ -80,13 +81,18 @@ public class TransportistasController {
 	}
 
 	@GetMapping("/representante/transporte/transportista")
-	public ResponseEntity<?> findAllTransportistasByRepresentante(){
+	public ResponseEntity<?> findAllTransportistasByRepresentante(@RequestParam(required = false) String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
-			RepresentanteTransporte rtAuth = (RepresentanteTransporte) auth.getPrincipal();
+			Usuario usr = (Usuario) auth.getPrincipal();
+			RepresentanteTransporte rt;
 			try {
-				rtAuth = rtr.findById(rtAuth.getIdUsuario()).get();
-				List<TransportistaSeguro> l = findTransportistasByEmpresa(rtAuth.getEmpresaTransporte().getRazonSocial());
+				if (idRepresentanteTrans == null)
+					rt = rtr.findById(usr.getIdUsuario()).get();
+				else 
+					rt = rtr.findById(idRepresentanteTrans).get();
+					
+				List<TransportistaSeguro> l = findTransportistasByEmpresa(rt.getEmpresaTransporte().getRazonSocial());
 				return ControllerUtils.okResponse(l);
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -99,7 +105,7 @@ public class TransportistasController {
 	@PutMapping("/representante/transporte/transportista/{id}")
 	public ResponseEntity<?> updateTransportistaFromRepresentante(
 			@PathVariable String id,
-			@RequestBody UpdateTransportistaRepresentante updateTransportistaRepresentante){
+			@RequestBody(required = true) UpdateTransportistaRepresentante updateTransportistaRepresentante){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -194,20 +200,30 @@ public class TransportistasController {
 	}
 	
 	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-		Optional<SedeDTO> os = sr.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-		if(os.isEmpty())
+		if (sede == null) {
 			return false;
-		else
+		}
+		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
+			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
+			Optional<SedeDTO> os = sr.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
+			if(!os.isEmpty())
+				return true;
+			else
+				return false;
+		} else {
 			return true;
+		}
 	}
 	
 	private boolean perteneceAlUsuario(Usuario u, Transportista transportista){
-		Optional<Transportista> ot = tr.findById(transportista.getIdUsuario());
-		if(ot.isEmpty())
+		if (transportista == null) {
 			return false;
-		else
+		}
+		Optional<Transportista> ot = tr.findById(transportista.getIdUsuario());
+		if(!ot.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
 			return perteneceAlUsuario(u, ot.get().getSede());
+		else
+			return false;
 		
 	}
 }
