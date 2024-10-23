@@ -79,12 +79,15 @@ public class Oferta implements Serializable {
     private BigDecimal pesoTotal;
     
     @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Carga> carga;
+    private List<Carga> cargas;
     
     @ManyToOne
-    @JoinColumn(name = "reprClienteId", referencedColumnName = "usuarioId", nullable = false,
+    @JoinColumn(name = "representanteClienteId", referencedColumnName = "usuarioId", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_repCliente_Oferta"))
     private RepresentanteCliente representanteCliente;
+    
+    @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Postulacion> postulaciones;
     
     @Column(name = "fechaCreacion", nullable = false)
     @JsonIgnore
