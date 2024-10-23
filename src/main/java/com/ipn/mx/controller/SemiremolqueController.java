@@ -3,7 +3,6 @@ package com.ipn.mx.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
-import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.RolUsuario;
@@ -38,6 +36,8 @@ public class SemiremolqueController {
 	private RepresentanteTransporteRepository rtr;
 	@Autowired
 	private SedeRepository sedeRepository;
+	@Autowired
+	private ControllerUtils controllerUtils;
 	
 	@PostMapping("")
 	public ResponseEntity<?> crearSemirremolque(@RequestBody(required = true) Semirremolque semirremolque){
@@ -45,7 +45,7 @@ public class SemiremolqueController {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Usuario u = (Usuario) auth.getPrincipal();
 			try {
-				if (perteneceAlUsuario(u, semirremolque.getSede())) {
+				if (controllerUtils.perteneceAlUsuario(u, semirremolque.getSede())) {
 					semirremolqueRepository.save(semirremolque);
 					return ControllerUtils.createdResponse();
 				} else 
@@ -89,7 +89,7 @@ public class SemiremolqueController {
 			Usuario u = (Usuario) auth.getPrincipal();
 			semirremolque.setIdSemirremolque(idSemirremolque);
 			try {
-				if (perteneceAlUsuario(u, semirremolque)) {
+				if (controllerUtils.perteneceAlUsuario(u, semirremolque)) {
 					semirremolque = getUpdateSemirremolque(semirremolque);
 					semirremolqueRepository.save(semirremolque);
 					return ControllerUtils.okResponse();
@@ -110,7 +110,7 @@ public class SemiremolqueController {
 				Usuario u = (Usuario) auth.getPrincipal();
 				Semirremolque semirremolque = semirremolqueRepository.findById(idSemirremolque)
 						.orElseThrow(() -> new NoSuchElementException("No se encontró el semirremolque con ID: " + idSemirremolque));
-				if (perteneceAlUsuario(u, semirremolque)) {
+				if (controllerUtils.perteneceAlUsuario(u, semirremolque)) {
 					semirremolqueRepository.deleteById(idSemirremolque);
 					return ControllerUtils.okResponse();
 				} else 
@@ -122,34 +122,7 @@ public class SemiremolqueController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
-	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		if (sede == null) {
-			return false;
-		}
-		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
-			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-			Optional<SedeDTO> os = 
-					sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-			if(!os.isEmpty())
-				return true;
-			else
-				return false;
-		} else {
-			return true;
-		}
-	}
 	
-	private boolean perteneceAlUsuario(Usuario u, Semirremolque semirremolque){
-		if (semirremolque == null) {
-			return false;
-		}
-		Optional<Semirremolque> os = semirremolqueRepository.findById(semirremolque.getIdSemirremolque());
-		if(!os.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
-			return perteneceAlUsuario(u, os.get().getSede());
-		else
-			return false;
-		
-	}
 	
 	private List<Semirremolque> findSemirremolquesByRepresentante(Usuario usuario) {
 		RepresentanteTransporte rt = rtr.findById(usuario.getIdUsuario()).get();
