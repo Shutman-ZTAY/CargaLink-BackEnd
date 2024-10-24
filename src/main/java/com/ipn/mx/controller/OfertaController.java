@@ -22,13 +22,16 @@ import com.ipn.mx.model.entity.Contenedor;
 import com.ipn.mx.model.entity.Embalaje;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.RepresentanteCliente;
+import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.EstatusOferta;
+import com.ipn.mx.model.enumerated.EstatusRepTrans;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.enumerated.TipoCarga;
 import com.ipn.mx.model.repository.CargaRepository;
 import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
+import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 
 @RestController
 @RequestMapping("/representante")
@@ -38,6 +41,8 @@ public class OfertaController {
 	private OfertaRepository ofertaRepository;
 	@Autowired
 	private RepresentanteClienteRepository rcr;
+	@Autowired
+	private RepresentanteTransporteRepository rtr;
 	@Autowired
 	private CargaRepository cargaRepository;
 	@Autowired
@@ -113,6 +118,11 @@ public class OfertaController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			if (u.getRol() != RolUsuario.ADMINISTRADOR) {
+				RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
+				if (rt.getEstatusRepTrans() != EstatusRepTrans.VALIDO)
+					return ControllerUtils.unauthorisedResponse();
+			}
 			try {
 				if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE) {
 					List<Oferta> lo = ofertaRepository.findAllOfertasDisponibles();

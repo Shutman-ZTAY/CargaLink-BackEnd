@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.entity.Oferta;
+import com.ipn.mx.model.entity.Postulacion;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Sede;
@@ -135,5 +136,14 @@ public class ControllerUtils {
 		else
 			return false;
 		
+	}
+
+	public boolean perteneceAlUsuario(Usuario usuario, Postulacion postulacion) {
+		if (usuario.getIdUsuario() == postulacion.getRepresentanteTransporte().getIdUsuario())
+			return true;
+		else if (usuario.getRol() == RolUsuario.ADMINISTRADOR) 
+			return true;
+		else
+			return false;
 	}
 }
