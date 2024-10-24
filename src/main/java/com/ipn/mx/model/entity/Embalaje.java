@@ -2,8 +2,12 @@ package com.ipn.mx.model.entity;
 
 import java.math.BigDecimal;
 
+import com.ipn.mx.model.enumerated.TipoEmbalaje;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,6 +28,10 @@ import lombok.experimental.SuperBuilder;
 public class Embalaje extends Carga {
 
 	private static final long serialVersionUID = 1L;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name = "tipoEmbalaje", nullable = false)
+    private TipoEmbalaje tipoEmbalaje;
 
     @Column(name = "contenido", length = 100, nullable = true)
     private String contenido;
@@ -41,5 +49,5 @@ public class Embalaje extends Carga {
     private BigDecimal ancho;
 
     @Column(name = "alto", precision = 4, scale = 2, nullable = true)
-    private BigDecimal alto;
+    private BigDecimal alto; 
 }

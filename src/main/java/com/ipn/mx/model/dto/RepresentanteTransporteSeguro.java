@@ -1,6 +1,7 @@
 package com.ipn.mx.model.dto;
 
 import com.ipn.mx.model.entity.EmpresaAutotransporte;
+import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.enumerated.EstatusRepTrans;
 
 import lombok.AllArgsConstructor;
@@ -18,15 +19,17 @@ public class RepresentanteTransporteSeguro extends UsuarioSeguro {
 	private EstatusRepTrans estatusRepTrans;
 	private EmpresaAutotransporte empresaTransporte;
 	
-	public static RepresentanteTransporteSeguro usuarioSeguroToRepresentanteTransporteSeguro(UsuarioSeguro us) {
+	public static RepresentanteTransporteSeguro usuarioToUsuarioSeguro(RepresentanteTransporte representeante) {
 		return RepresentanteTransporteSeguro.builder()
-				.idUsuario(us.getIdUsuario())
-				.correo(us.getCorreo())
-				.nombre(us.getNombre())
-				.primerApellido(us.getPrimerApellido())
-				.segundoApellido(us.getSegundoApellido())
-				.telefono(us.getTelefono())
-				.rol(us.getRol())
+				.idUsuario(representeante.getIdUsuario())
+				.correo(representeante.getCorreo())
+				.nombre(representeante.getNombre())
+				.primerApellido(representeante.getPrimerApellido())
+				.segundoApellido(representeante.getSegundoApellido())
+				.telefono(representeante.getTelefono())
+				.rol(representeante.getRol())
+				.estatusRepTrans(representeante.getEstatusRepTrans())
+				.empresaTransporte(representeante.getEmpresaTransporte())
 				.build();
 	}
 }

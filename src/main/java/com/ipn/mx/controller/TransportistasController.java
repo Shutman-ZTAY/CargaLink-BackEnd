@@ -2,7 +2,6 @@ package com.ipn.mx.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.dto.UpdateTransportista;
 import com.ipn.mx.model.dto.UpdateTransportistaRepresentante;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
-import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
@@ -46,6 +44,8 @@ public class TransportistasController {
 	private TransportistaRepository tr;
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
+	@Autowired
+	private ControllerUtils controllerUtils;
 
 	@PostMapping("/representante/transporte/transportista")
 	public ResponseEntity<?> createTransportista(@RequestBody(required = true) Transportista transportista){
@@ -121,6 +121,9 @@ public class TransportistasController {
 				newCategoria = updateTransportistaRepresentante.getCategoria();
 			if (updateTransportistaRepresentante.getSede() != null)
 				newSede = updateTransportistaRepresentante.getSede().getIdSede();
+			
+			if (!controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), tr.findById(id).orElse(null)))
+				return ControllerUtils.badRequestResponse();
 			if(!sr.existsById(newSede)) {
 				try {
 					sr.save(updateTransportistaRepresentante.getSede());
@@ -145,7 +148,7 @@ public class TransportistasController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
-				if (perteneceAlUsuario((Usuario) auth.getPrincipal(), tr.findById(id).orElse(null))) {
+				if (controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), tr.findById(id).orElse(null))) {
 					tr.deleteById(id);
 					return ResponseEntity.ok(null);
 				} else {
@@ -199,31 +202,4 @@ public class TransportistasController {
 		return tr.findAllTransportistasByAllSedes(idSedes);
 	}
 	
-	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		if (sede == null) {
-			return false;
-		}
-		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
-			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-			Optional<SedeDTO> os = sr.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-			if(!os.isEmpty())
-				return true;
-			else
-				return false;
-		} else {
-			return true;
-		}
-	}
-	
-	private boolean perteneceAlUsuario(Usuario u, Transportista transportista){
-		if (transportista == null) {
-			return false;
-		}
-		Optional<Transportista> ot = tr.findById(transportista.getIdUsuario());
-		if(!ot.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
-			return perteneceAlUsuario(u, ot.get().getSede());
-		else
-			return false;
-		
-	}
 }

@@ -1,7 +1,6 @@
 package com.ipn.mx.controller;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +32,8 @@ public class SedeController {
 	private SedeRepository sedeRepository;
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
+	@Autowired
+	private ControllerUtils controllerUtils;
 	
 	@PostMapping("")
 	public ResponseEntity<?> createSede(@RequestBody(required = true) Sede sede){
@@ -59,9 +60,6 @@ public class SedeController {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			RepresentanteTransporte rt;
 			try {
-				System.out.println("");
-				System.out.println(idRepresentanteTrans);
-				System.out.println("");
 				if (idRepresentanteTrans != null)
 					rt = rtr.findById(idRepresentanteTrans).get();
 				else
@@ -86,7 +84,7 @@ public class SedeController {
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Sede s = sedeRepository.findById(id).get();;
-			if (perteneceAlUsuario(u, s)) {
+			if (controllerUtils.perteneceAlUsuario(u, s)) {
 				Integer idSede = s.getIdSede();
 				String newNombre = s.getNombre();
 				String newDireccion = s.getDireccion();
@@ -114,7 +112,7 @@ public class SedeController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
-				if (perteneceAlUsuario((Usuario) auth.getPrincipal(), sedeRepository.findById(idSede).get())) {
+				if (controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), sedeRepository.findById(idSede).get())) {
 						sedeRepository.deleteById(idSede);
 						return ControllerUtils.okResponse();
 				} else 
@@ -126,21 +124,4 @@ public class SedeController {
 			return ControllerUtils.unauthorisedResponse();
 		}
 	}
-	
-	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		if (sede == null) {
-			return false;
-		}
-		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
-			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-			Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-			if(!os.isEmpty())
-				return true;
-			else
-				return false;
-		} else {
-			return true;
-		}
-	}
-
 }
