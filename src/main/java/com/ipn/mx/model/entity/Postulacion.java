@@ -1,13 +1,6 @@
 package com.ipn.mx.model.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ipn.mx.model.enumerated.EstatusOferta;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,7 +40,7 @@ public class Postulacion {
                 foreignKey = @ForeignKey(name = "fk_reprTransporte_postulacion"))
 	private RepresentanteTransporte representanteTransporte;
 	
-	@Column(name = "precioPreeliminar", precision = 10, scale = 2, nullable = true)
+	@Column(name = "precioPreeliminar", precision = 10, scale = 2, nullable = false)
 	private BigDecimal precioPreeliminar;
 	
 }

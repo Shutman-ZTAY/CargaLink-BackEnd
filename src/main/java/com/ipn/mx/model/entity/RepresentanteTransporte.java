@@ -2,6 +2,7 @@ package com.ipn.mx.model.entity;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipn.mx.model.enumerated.EstatusRepTrans;
 
 import jakarta.persistence.CascadeType;
@@ -42,6 +43,7 @@ public class RepresentanteTransporte extends Usuario {
     			foreignKey = @ForeignKey(name = "fk_transporteRazonRT"))
 	private EmpresaAutotransporte empresaTransporte;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "representanteTransporte", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Postulacion> postulaciones;
 }

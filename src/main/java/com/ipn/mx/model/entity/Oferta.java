@@ -86,6 +86,7 @@ public class Oferta implements Serializable {
                 foreignKey = @ForeignKey(name = "fk_repCliente_Oferta"))
     private RepresentanteCliente representanteCliente;
     
+    @JsonIgnore
     @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Postulacion> postulaciones;
     
