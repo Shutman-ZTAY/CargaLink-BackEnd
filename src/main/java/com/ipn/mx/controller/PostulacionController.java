@@ -1,5 +1,6 @@
 package com.ipn.mx.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -27,7 +28,7 @@ import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.PostulacionRepository;
 
 @RestController
-@RequestMapping("")
+@RequestMapping("/representante")
 public class PostulacionController {
 	
 	@Autowired
@@ -45,7 +46,13 @@ public class PostulacionController {
 			try {
 				postulacion.setIdPostulacion(null);
 				postulacion.setRepresentanteTransporte((RepresentanteTransporte) u);
-				postulacionRepository.save(postulacion);
+				boolean exist = postulacionRepository.existByOfertaAndRepresentanteTransporte(
+						postulacion.getOferta().getIdOferta(),
+						postulacion.getRepresentanteTransporte().getIdUsuario());
+				if (exist)
+					return ControllerUtils.badRequestResponse("Ya existe una postulacion");
+				else
+					postulacionRepository.save(postulacion);
 				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -90,8 +97,9 @@ public class PostulacionController {
 								() -> new NoSuchElementException("Elemento no encontrado"));
 				if (controllerUtils.perteneceAlUsuario(u, p)) {
 					postulacionRepository.deleteById(idPostulacion);
-				}				
-				return ControllerUtils.okResponse();
+					return ControllerUtils.okResponse();
+				}else
+					return ControllerUtils.unauthorisedResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -109,7 +117,8 @@ public class PostulacionController {
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
 				if(controllerUtils.perteneceAlUsuario(u, o))
-					return ControllerUtils.okResponse(o.getPostulaciones());
+					return ControllerUtils.okResponse(
+							getPostulacionDTO(o.getPostulaciones()));
 				else
 					return ControllerUtils.unauthorisedResponse();
 			} catch (Exception e) {
@@ -118,7 +127,7 @@ public class PostulacionController {
 		}else
 			return ControllerUtils.unauthorisedResponse();
 	}
-	
+
 	@PatchMapping("/cliente/postulacion")
 	public ResponseEntity<?> aceptarPostulacion(
 			@RequestBody Postulacion postulacion){
@@ -133,7 +142,7 @@ public class PostulacionController {
 							postulacion.getRepresentanteTransporte().getIdUsuario());
 					ofertaRepository.updateEstatusOferta(
 							postulacion.getOferta().getIdOferta(),
-							EstatusOferta.CONFIGURANDO.name());
+							EstatusOferta.CONFIGURANDO);
 					return ControllerUtils.okResponse();
 				} else {
 					return ControllerUtils.unauthorisedResponse();
@@ -143,5 +152,14 @@ public class PostulacionController {
 			}
 		}else
 			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	private List<PostulacionDTO> getPostulacionDTO(List<Postulacion> postulaciones) {
+		List<PostulacionDTO> ldto = new ArrayList<PostulacionDTO>();
+		for (Postulacion postulacion : postulaciones) {
+			PostulacionDTO dto = PostulacionDTO.toPostulacionDTO(postulacion);
+			ldto.add(dto);
+		}
+		return ldto;
 	}
 }

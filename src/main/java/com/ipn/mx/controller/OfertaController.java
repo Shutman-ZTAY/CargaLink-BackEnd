@@ -116,8 +116,9 @@ public class OfertaController {
 		}
 	}
 	
+	//Si el usuario es administrador retorna todas las ofertas aun que no se pueda postular a ellas
 	@GetMapping("/transporte/oferta")
-	public ResponseEntity<?> viewAllOfertas(@RequestParam(required = false) String idRepresentanteCliente){
+	public ResponseEntity<?> viewAllOfertas(){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -132,7 +133,7 @@ public class OfertaController {
 					return ControllerUtils.okResponse(toOfertaDTO(lo));
 				} else
 					return ControllerUtils.okResponse(
-								ofertaRepository.findAll()
+								toOfertaDTO(ofertaRepository.findAll())
 							);
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);

@@ -139,7 +139,7 @@ public class ControllerUtils {
 	}
 
 	public boolean perteneceAlUsuario(Usuario usuario, Postulacion postulacion) {
-		if (usuario.getIdUsuario() == postulacion.getRepresentanteTransporte().getIdUsuario())
+		if (usuario.getIdUsuario().equals(postulacion.getRepresentanteTransporte().getIdUsuario()))
 			return true;
 		else if (usuario.getRol() == RolUsuario.ADMINISTRADOR) 
 			return true;

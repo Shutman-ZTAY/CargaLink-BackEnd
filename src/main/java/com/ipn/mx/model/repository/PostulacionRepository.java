@@ -3,6 +3,7 @@ package com.ipn.mx.model.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,7 +20,16 @@ public interface PostulacionRepository extends JpaRepository<Postulacion, Intege
 			+ "FROM Postulacion p WHERE p.representanteTransporte.idUsuario= :idRepresentanteTransporte")
 	List<PostulacionDTO> findAllPostulacionesByReprTransporte(@Param("idRepresentanteTransporte") String idRepresentanteTransporte);
 
+	@Query("SELECT CASE WHEN (COUNT(p) > 0) THEN TRUE ELSE FALSE END FROM Postulacion p WHERE "
+	        + "p.oferta.idOferta = :idOferta "
+	        + "AND "
+	        + "p.representanteTransporte.idUsuario = :idUsuario")
+	boolean existByOfertaAndRepresentanteTransporte(
+	        @Param("idOferta") Integer idOferta, 
+	        @Param("idUsuario") String idUsuario);
+	
 	@Transactional
+	@Modifying
 	@Query("DELETE FROM Postulacion p WHERE "
 			+ "p.oferta.idOferta = :idOferta "
 			+ "AND "

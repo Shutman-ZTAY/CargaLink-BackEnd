@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.ipn.mx.model.entity.Oferta;
+import com.ipn.mx.model.enumerated.EstatusOferta;
 
 import jakarta.transaction.Transactional;
 
@@ -32,6 +33,6 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 			+ "WHERE o.idOferta = :idOferta")
 	void updateEstatusOferta(
 			@Param("idOferta") Integer idOferta, 
-			@Param("estatus") String estatus);
+			@Param("estatus") EstatusOferta estatus);
 	
 }
