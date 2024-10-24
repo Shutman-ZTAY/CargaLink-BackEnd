@@ -78,7 +78,7 @@ public class Oferta implements Serializable {
     @Column(name = "pesoTotal", precision = 8, scale = 3, nullable = true)
     private BigDecimal pesoTotal;
     
-    @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "oferta", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Carga> cargas;
     
     @ManyToOne

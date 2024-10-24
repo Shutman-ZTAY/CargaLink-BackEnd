@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ipn.mx.model.dto.CreateOferta;
+import com.ipn.mx.model.dto.OfertaDTO;
 import com.ipn.mx.model.entity.Carga;
 import com.ipn.mx.model.entity.Contenedor;
 import com.ipn.mx.model.entity.Embalaje;
@@ -49,18 +51,19 @@ public class OfertaController {
 	private ControllerUtils controllerUtils;
 
 	@PostMapping("/cliente/oferta")
-	public ResponseEntity<?> createOferta(@RequestBody(required = true) Oferta oferta){
+	public ResponseEntity<?> createOferta(@RequestBody(required = true) CreateOferta createOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
+				Oferta oferta = CreateOferta.toOferta(createOferta);
 				oferta.setRepresentanteCliente((RepresentanteCliente) u);
 				oferta.setEstatus(EstatusOferta.OFERTA);
-				if(oferta.getCargas() != null)
+				if(oferta.getCargas() == null)
 					return ControllerUtils.badRequestResponse("La oferta no tiene cargas asociadas");
 				oferta.setCargas(setTipoCarga(oferta.getCargas()));
-				ofertaRepository.save(oferta);
-				cargaRepository.saveAll(oferta.getCargas());
+				Oferta o = ofertaRepository.save(oferta);
+				cargaRepository.saveAll(setIdOfertaIdInCargas(oferta.getCargas(), o));
 				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -68,7 +71,7 @@ public class OfertaController {
 		}else
 			return ControllerUtils.unauthorisedResponse();
 	}
-	
+
 	@GetMapping("/cliente/oferta")
 	public ResponseEntity<?> viewAllOfertasByRepresentante(@RequestParam(required = false) String idRepresentanteCliente){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -82,7 +85,7 @@ public class OfertaController {
 					rc = rcr.findById(u.getIdUsuario()).get();
 				
 				List<Oferta> lo = ofertaRepository.findAllOfertasByReprCliente(rc.getIdUsuario());
-				return ControllerUtils.okResponse(lo);
+				return ControllerUtils.okResponse(toOfertaDTO(lo));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -91,12 +94,12 @@ public class OfertaController {
 		}
 	}
 
-	@DeleteMapping("/{idOferta}")
+	@DeleteMapping("/cliente/oferta/{idOferta}")
 	public ResponseEntity<?> deleteOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			Oferta o = ofertaRepository.findById(idOferta).orElseThrow(
 					() -> new NoSuchElementException("No existe este recurso"));
 			if (controllerUtils.perteneceAlUsuario(u, o)) {
@@ -126,7 +129,7 @@ public class OfertaController {
 			try {
 				if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE) {
 					List<Oferta> lo = ofertaRepository.findAllOfertasDisponibles();
-					return ControllerUtils.okResponse(lo);
+					return ControllerUtils.okResponse(toOfertaDTO(lo));
 				} else
 					return ControllerUtils.okResponse(
 								ofertaRepository.findAll()
@@ -151,5 +154,21 @@ public class OfertaController {
 			lc.add(carga);
 		}
 		return lc;
+	}
+	
+	private List<OfertaDTO> toOfertaDTO(List<Oferta> lo) {
+		List<OfertaDTO> ldto = new ArrayList<OfertaDTO>();
+		for (Oferta oferta : lo) {
+			OfertaDTO dto = OfertaDTO.ofertatoOfertaDTO(oferta);
+			ldto.add(dto);
+		}
+		return ldto;
+	}
+	
+	private List<Carga> setIdOfertaIdInCargas(List<Carga> cargas, Oferta oferta) {
+		for (Carga carga : cargas) {
+			carga.setOferta(oferta);
+		}
+		return cargas;
 	}
 }

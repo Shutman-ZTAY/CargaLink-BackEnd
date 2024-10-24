@@ -55,7 +55,7 @@ public class ControllerUtils {
 	}
 	
 	public static ResponseEntity<?> badRequestResponse(){
-		return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(null);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 	}
 
 	public static ResponseEntity<?> unauthorisedResponse() {
@@ -102,7 +102,7 @@ public class ControllerUtils {
 		if (oferta == null) {
 			return false;
 		}
-		if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE) {
+		if (u.getRol() == RolUsuario.REPRESENTANTE_CLIENTE) {
 			RepresentanteCliente rt = rct.findById(u.getIdUsuario()).get();
 			Optional<Oferta> oo = ofertaRepository.findOfertaByClienteAndId(oferta.getIdOferta(), rt.getIdUsuario());
 			if(!oo.isEmpty())

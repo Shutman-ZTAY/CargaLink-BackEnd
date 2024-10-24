@@ -1,6 +1,7 @@
 package com.ipn.mx.model.dto;
 
 import com.ipn.mx.model.entity.Empresa;
+import com.ipn.mx.model.entity.RepresentanteCliente;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,15 +16,16 @@ public class RepresentanteClienteSeguro extends UsuarioSeguro {
 
 	private Empresa empresaCliente;
 	
-	public static RepresentanteClienteSeguro usuarioSeguroToRepresentanteClienteSeguro(UsuarioSeguro us) {
+	public static RepresentanteClienteSeguro reprClienteToRepresentanteClienteSeguro(RepresentanteCliente representanteCliente) {
 		return RepresentanteClienteSeguro.builder()
-				.idUsuario(us.getIdUsuario())
-				.correo(us.getCorreo())
-				.nombre(us.getNombre())
-				.primerApellido(us.getPrimerApellido())
-				.segundoApellido(us.getSegundoApellido())
-				.telefono(us.getTelefono())
-				.rol(us.getRol())
+				.idUsuario(representanteCliente.getIdUsuario())
+				.correo(representanteCliente.getCorreo())
+				.nombre(representanteCliente.getNombre())
+				.primerApellido(representanteCliente.getPrimerApellido())
+				.segundoApellido(representanteCliente.getSegundoApellido())
+				.telefono(representanteCliente.getTelefono())
+				.rol(representanteCliente.getRol())
+				.empresaCliente(representanteCliente.getEmpresaCliente())
 				.build();
 	}
 	
