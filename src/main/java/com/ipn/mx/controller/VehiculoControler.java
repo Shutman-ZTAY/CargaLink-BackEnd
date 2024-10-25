@@ -40,6 +40,8 @@ public class VehiculoControler {
 	private RepresentanteTransporteRepository rtr;
 	@Autowired 
 	private SedeRepository sedeRepository;
+	@Autowired 
+	private ControllerUtils controllerUtils;
 
 	@PostMapping("")
 	public ResponseEntity<?> createVehiculo(@RequestBody(required = true) Vehiculo vehiculo) {
@@ -48,7 +50,7 @@ public class VehiculoControler {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
 				vehiculo = setTipoVehiculo(vehiculo);
-				if (perteneceAlUsuario(u, vehiculo.getSede()) && !vehiculoRepository.existsById(vehiculo.getPlaca())) {
+				if (controllerUtils.perteneceAlUsuario(u, vehiculo.getSede()) && !vehiculoRepository.existsById(vehiculo.getPlaca())) {
 					vehiculoRepository.save(vehiculo);
 					return ControllerUtils.createdResponse();
 				} else {
@@ -89,7 +91,7 @@ public class VehiculoControler {
 			try {
 				vehiculo = setTipoVehiculo(vehiculo);
 				vehiculo.setPlaca(id);
-				if (perteneceAlUsuario(u, vehiculo)) {
+				if (controllerUtils.perteneceAlUsuario(u, vehiculo)) {
 					vehiculo.setPlaca(id);
 					vehiculo = getUpdateVehiculo(vehiculo);
 					vehiculoRepository.save(vehiculo);
@@ -111,7 +113,7 @@ public class VehiculoControler {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
 				Vehiculo vehiculo = vehiculoRepository.findById(id).orElse(null);
-				if (perteneceAlUsuario(u, vehiculo)) {
+				if (controllerUtils.perteneceAlUsuario(u, vehiculo)) {
 					vehiculoRepository.deleteById(vehiculo.getPlaca());
 					return ControllerUtils.okResponse();
 				} else 
@@ -122,33 +124,6 @@ public class VehiculoControler {
 		} else {
 			return ControllerUtils.unauthorisedResponse();
 		}
-	}
-	
-	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		if (sede == null) {
-			return false;
-		}
-		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
-			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-			Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-			if(!os.isEmpty())
-				return true;
-			else
-				return false;
-		} else {
-			return true;
-		}
-	}
-	
-	private boolean perteneceAlUsuario(Usuario u, Vehiculo vehiculo){
-		if (vehiculo == null) {
-			return false;
-		}
-		Optional<Vehiculo> ov = vehiculoRepository.findById(vehiculo.getPlaca());
-		if(!ov.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
-			return perteneceAlUsuario(u, ov.get().getSede());
-		else
-			return true;
 	}
 	
 	private List<Vehiculo> findVehiculosByRepresentante(Usuario usuario) {
