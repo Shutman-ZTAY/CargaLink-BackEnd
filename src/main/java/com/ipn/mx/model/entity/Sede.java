@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ipn.mx.model.dto.SedeDTO;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -58,4 +59,14 @@ public class Sede implements Serializable {
     @OneToMany(mappedBy = "sede", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Semirremolque> semirremolques;
+
+	public static Sede toSede(SedeDTO dto) {
+		Sede s = Sede
+				.builder()
+				.idSede(dto.getIdSede())
+    			.nombre(dto.getNombre())
+    			.direccion(dto.getDireccion())
+				.build();
+		return s;
+	}
 }

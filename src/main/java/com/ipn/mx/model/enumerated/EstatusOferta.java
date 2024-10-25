@@ -6,6 +6,7 @@ public enum EstatusOferta {
     RECOGIENDO,
     EMBARCANDO,
     EN_CAMINO,
+    PROBLEMA,
     ENTREGADO,
     FINALIZADO,
     PAGADO

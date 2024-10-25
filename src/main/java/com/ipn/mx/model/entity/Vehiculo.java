@@ -2,9 +2,13 @@ package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.MarcaVehiculo;
 import com.ipn.mx.model.enumerated.TipoVehiculo;
@@ -20,6 +24,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -79,5 +84,28 @@ public class Vehiculo implements Serializable {
     @JoinColumn(name = "sedeId", referencedColumnName = "idSede", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idSedeVh"))
     private Sede sede;
+    
+    
+    @JsonIgnore
+    @OneToMany(mappedBy = "vehiculo", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Recurso> recursos;
+
+
+	public static Vehiculo toVehiculo(VehiculoDTO dto) {
+		Vehiculo v = Vehiculo
+				.builder()
+				.placa(dto.getPlaca())
+    			.peso(dto.getPeso())
+    			.noEjes(dto.getNoEjes())
+    			.noLlantas(dto.getNoLlantas())
+    			.largo(dto.getLargo())
+    			.marca(dto.getMarca())
+    			.tipo(dto.getTipo())
+    			.estatus(dto.getEstatus())
+    			.modelo(dto.getModelo())
+    			.sede(Sede.toSede(dto.getSede()))
+				.build();
+		return v;
+	}
 
 }

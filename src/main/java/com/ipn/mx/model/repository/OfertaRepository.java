@@ -35,4 +35,13 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 			@Param("idOferta") Integer idOferta, 
 			@Param("estatus") EstatusOferta estatus);
 	
+	@Transactional
+	@Modifying
+	@Query("UPDATE Oferta o "
+			+ "SET o.contrato = :contrato "
+			+ "WHERE o.idOferta = :idOferta")
+	void updateContrato(
+			@Param("idOferta") Integer idOferta, 
+			@Param("contrato") String contrato);
+	
 }

@@ -90,6 +90,10 @@ public class Oferta implements Serializable {
     @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Postulacion> postulaciones;
     
+    @JsonIgnore
+    @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Recurso> recursos;
+    
     @Column(name = "fechaCreacion", nullable = false)
     @JsonIgnore
     private LocalDateTime fechaCreacion;
