@@ -128,7 +128,7 @@ public class ControllerUtils {
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Semirremolque semirremolque){
-		if (semirremolque == null) {
+		if (semirremolque == null || semirremolque.getIdSemirremolque() == null) {
 			return false;
 		}
 		Optional<Semirremolque> os = semirremolqueRepository.findById(semirremolque.getIdSemirremolque());
@@ -139,7 +139,7 @@ public class ControllerUtils {
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Transportista transportista){
-		if (transportista == null) {
+		if (transportista == null || transportista.getIdUsuario() == null) {
 			return false;
 		}
 		Optional<Transportista> ot = transportistaRepository.findById(transportista.getIdUsuario());
@@ -151,7 +151,7 @@ public class ControllerUtils {
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Vehiculo vehiculo){
-		if (vehiculo == null) {
+		if (vehiculo == null || vehiculo.getPlaca() == null) {
 			return false;
 		}
 		Optional<Vehiculo> ov = vehiculoRepository.findById(vehiculo.getPlaca());

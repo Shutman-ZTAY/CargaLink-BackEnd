@@ -43,5 +43,14 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	void updateContrato(
 			@Param("idOferta") Integer idOferta, 
 			@Param("contrato") String contrato);
+
+	@Query("SELECT o FROM Oferta o "
+			+ "JOIN o.recursos r "
+			+ "WHERE r.transportista.idUsuario = :idTransportista "
+			+ "AND (o.estatus = EstatusOferta.RECOGIENDO OR o.estatus = EstatusOferta.EMBARCANDO "
+			+ "OR o.estatus = EstatusOferta.EN_CAMINO OR o.estatus = EstatusOferta.PROBLEMA "
+			+ "OR o.estatus = EstatusOferta.ENTREGADO)")
+	Optional<Oferta> findByIdTransportista(
+	        @Param("idTransportista") String idTransportista);
 	
 }

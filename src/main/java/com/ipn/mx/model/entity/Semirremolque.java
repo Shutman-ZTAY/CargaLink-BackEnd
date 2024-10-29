@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.SemirremolqueDTO;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.TipoSemirremolque;
@@ -84,20 +83,24 @@ public class Semirremolque implements Serializable {
 
 
 	public static Semirremolque toSemirremolque(SemirremolqueDTO dto) {
-		Semirremolque s = Semirremolque
-				.builder()
-				.idSemirremolque(dto.getIdSemirremolque())
-    			.nombreIdentificador(dto.getNombreIdentificador())
-    			.estatus(dto.getEstatus())
-    			.tipo(dto.getTipo())
-    			.largo(dto.getLargo())
-    			.ancho(dto.getAncho())
-    			.alto(dto.getAlto())
-    			.peso(dto.getPeso())
-    			.noEjes(dto.getNoEjes())
-    			.noLlantas(dto.getNoLlantas())
-    			.sede(Sede.toSede(dto.getSede()))
-				.build();
-		return s;
+		try {
+			Semirremolque s = Semirremolque
+					.builder()
+					.idSemirremolque(dto.getIdSemirremolque())
+	    			.nombreIdentificador(dto.getNombreIdentificador())
+	    			.estatus(dto.getEstatus())
+	    			.tipo(dto.getTipo())
+	    			.largo(dto.getLargo())
+	    			.ancho(dto.getAncho())
+	    			.alto(dto.getAlto())
+	    			.peso(dto.getPeso())
+	    			.noEjes(dto.getNoEjes())
+	    			.noLlantas(dto.getNoLlantas())
+	    			.sede(Sede.toSede(dto.getSede()))
+					.build();
+			return s;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

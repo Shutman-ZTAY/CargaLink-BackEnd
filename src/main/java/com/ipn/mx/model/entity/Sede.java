@@ -61,12 +61,16 @@ public class Sede implements Serializable {
     private List<Semirremolque> semirremolques;
 
 	public static Sede toSede(SedeDTO dto) {
-		Sede s = Sede
-				.builder()
-				.idSede(dto.getIdSede())
-    			.nombre(dto.getNombre())
-    			.direccion(dto.getDireccion())
-				.build();
-		return s;
+		try {
+			Sede s = Sede
+					.builder()
+					.idSede(dto.getIdSede())
+	    			.nombre(dto.getNombre())
+	    			.direccion(dto.getDireccion())
+					.build();
+			return s;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

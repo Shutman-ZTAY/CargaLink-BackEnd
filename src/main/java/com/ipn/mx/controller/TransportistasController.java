@@ -53,7 +53,7 @@ public class TransportistasController {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			transportista.setRol(RolUsuario.TRANSPORTISTA);
 			try {
-				if (tr.existsById(null)) {
+				if (tr.existsById(transportista.getIdUsuario())) {
 					String mensaje = "Ya existe este usuario";
 					return ControllerUtils.badRequestResponse(mensaje);
 				}

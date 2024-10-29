@@ -3,7 +3,6 @@ package com.ipn.mx.model.entity;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 import com.ipn.mx.model.enumerated.EstatusTransportista;
@@ -58,20 +57,24 @@ public class Transportista extends Usuario {
     private List<Recurso> recursos;
 
 	public static Transportista toTransportista(TransportistaSeguro transportistaSeguro) {
-		Transportista t = Transportista
-				.builder()
-				.idUsuario(transportistaSeguro.getIdUsuario())
-				.correo(transportistaSeguro.getCorreo())
-				.nombre(transportistaSeguro.getNombre())
-				.primerApellido(transportistaSeguro.getPrimerApellido())
-				.segundoApellido(transportistaSeguro.getSegundoApellido())
-				.telefono(transportistaSeguro.getTelefono())
-				.rol(transportistaSeguro.getRol())
-				.experiencia(transportistaSeguro.getExperiencia())
-				.categoria(transportistaSeguro.getCategoria())
-				.estatusTransportista(transportistaSeguro.getEstatusTransportista())
-				.sede(Sede.toSede(transportistaSeguro.getSede()))
-				.build();
-		return t;
+		try {
+			Transportista t = Transportista
+					.builder()
+					.idUsuario(transportistaSeguro.getIdUsuario())
+					.correo(transportistaSeguro.getCorreo())
+					.nombre(transportistaSeguro.getNombre())
+					.primerApellido(transportistaSeguro.getPrimerApellido())
+					.segundoApellido(transportistaSeguro.getSegundoApellido())
+					.telefono(transportistaSeguro.getTelefono())
+					.rol(transportistaSeguro.getRol())
+					.experiencia(transportistaSeguro.getExperiencia())
+					.categoria(transportistaSeguro.getCategoria())
+					.estatusTransportista(transportistaSeguro.getEstatusTransportista())
+					.sede(Sede.toSede(transportistaSeguro.getSede()))
+					.build();
+			return t;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

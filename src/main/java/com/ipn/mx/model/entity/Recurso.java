@@ -3,9 +3,6 @@ package com.ipn.mx.model.entity;
 import java.io.Serializable;
 
 import com.ipn.mx.model.dto.RecursoDTO;
-import com.ipn.mx.model.dto.SemirremolqueDTO;
-import com.ipn.mx.model.dto.TransportistaSeguro;
-import com.ipn.mx.model.dto.VehiculoDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

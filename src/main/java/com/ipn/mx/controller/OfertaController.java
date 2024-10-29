@@ -3,6 +3,9 @@ package com.ipn.mx.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import javax.naming.directory.InvalidAttributesException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,12 +21,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ipn.mx.exeptions.InvalidRequestExeption;
 import com.ipn.mx.model.dto.CreateOferta;
 import com.ipn.mx.model.dto.OfertaDTO;
+import com.ipn.mx.model.dto.UpdEstatus;
 import com.ipn.mx.model.entity.Carga;
 import com.ipn.mx.model.entity.Contenedor;
 import com.ipn.mx.model.entity.Embalaje;
 import com.ipn.mx.model.entity.Oferta;
+import com.ipn.mx.model.entity.Recurso;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Usuario;
@@ -32,11 +39,13 @@ import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.enumerated.TipoCarga;
 import com.ipn.mx.model.repository.CargaRepository;
 import com.ipn.mx.model.repository.OfertaRepository;
+import com.ipn.mx.model.repository.RecursoRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
+import com.ipn.mx.model.repository.TransportistaRepository;
 
 @RestController
-@RequestMapping("/representante")
+@RequestMapping("")
 public class OfertaController {
 	
 	@Autowired
@@ -46,11 +55,17 @@ public class OfertaController {
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
 	@Autowired
+	private TransportistaRepository transportistaRepository;
+	@Autowired
 	private CargaRepository cargaRepository;
 	@Autowired
 	private ControllerUtils controllerUtils;
+	
+	private static EstatusOferta[] UPDATABLE_STATUS = 
+		{EstatusOferta.EMBARCANDO, EstatusOferta.EN_CAMINO, 
+			EstatusOferta.PROBLEMA, EstatusOferta.ENTREGADO};
 
-	@PostMapping("/cliente/oferta")
+	@PostMapping("/representante/cliente/oferta")
 	public ResponseEntity<?> createOferta(@RequestBody(required = true) CreateOferta createOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
@@ -72,7 +87,7 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 
-	@GetMapping("/cliente/oferta")
+	@GetMapping("/representante/cliente/oferta")
 	public ResponseEntity<?> viewAllOfertasByRepresentante(@RequestParam(required = false) String idRepresentanteCliente){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
@@ -94,7 +109,7 @@ public class OfertaController {
 		}
 	}
 
-	@DeleteMapping("/cliente/oferta/{idOferta}")
+	@DeleteMapping("/representante/cliente/oferta/{idOferta}")
 	public ResponseEntity<?> deleteOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -117,7 +132,7 @@ public class OfertaController {
 	}
 	
 	//Si el usuario es administrador retorna todas las ofertas aun que no se pueda postular a ellas
-	@GetMapping("/transporte/oferta")
+	@GetMapping("/representante/transporte/oferta")
 	public ResponseEntity<?> viewAllOfertas(){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
@@ -143,6 +158,55 @@ public class OfertaController {
 		}
 	}
 	
+	@GetMapping("/transportista/oferta")
+	public ResponseEntity<?> viewFromTransportista(@RequestBody String idTransportista){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			try {
+				if (u.getRol() == RolUsuario.ADMINISTRADOR)
+					u = transportistaRepository.findById(idTransportista).orElseThrow(() -> new NoSuchElementException());
+				Oferta o = ofertaRepository.findByIdTransportista(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
+				return ControllerUtils.okResponse(OfertaDTO.ofertatoOfertaDTO(o));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	@PatchMapping("/transportista/oferta")
+	public ResponseEntity<?> updateEstatusFromTransportista(@RequestBody(required = false) UpdEstatus updEstatus){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			try {
+				Oferta o = ofertaRepository.findByIdTransportista(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
+				boolean update = verifyStatus(updEstatus);
+				if (!update) {
+					throw new InvalidRequestExeption("Estatus no valido");
+				}
+				ofertaRepository.updateEstatusOferta(o.getIdOferta(), updEstatus.getEstatus());
+				return ControllerUtils.okResponse();
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	private boolean verifyStatus(UpdEstatus updEstatus) {
+		boolean update = false;
+		for (EstatusOferta estatusOferta : UPDATABLE_STATUS) {
+			if (estatusOferta == updEstatus.getEstatus()) {
+				update = true;
+			}
+		}
+		return update;
+	}
+
 	private List<Carga> setTipoCarga(List<Carga> cargas) {
 		List<Carga> lc = new ArrayList<Carga>(); 
 		for (Carga carga : cargas) {

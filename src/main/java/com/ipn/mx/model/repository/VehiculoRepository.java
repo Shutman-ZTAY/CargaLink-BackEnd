@@ -24,5 +24,5 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, String> {
 	       + "WHERE v.placa = :placa")
 	void updateEstatusVehiculo(
 			@Param("placa") String placa, 
-			@Param("enViaje") EstatusVehiculo enViaje);
+			@Param("estatus") EstatusVehiculo estatus);
 }

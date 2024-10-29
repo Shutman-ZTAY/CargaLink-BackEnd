@@ -7,6 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.ipn.mx.model.dto.CamionUnitarioDTO;
 import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
@@ -92,20 +93,38 @@ public class Vehiculo implements Serializable {
 
 
 	public static Vehiculo toVehiculo(VehiculoDTO dto) {
-		Vehiculo v = Vehiculo
-				.builder()
-				.placa(dto.getPlaca())
-    			.peso(dto.getPeso())
-    			.noEjes(dto.getNoEjes())
-    			.noLlantas(dto.getNoLlantas())
-    			.largo(dto.getLargo())
-    			.marca(dto.getMarca())
-    			.tipo(dto.getTipo())
-    			.estatus(dto.getEstatus())
-    			.modelo(dto.getModelo())
-    			.sede(Sede.toSede(dto.getSede()))
-				.build();
-		return v;
+		if (dto instanceof CamionUnitarioDTO) {
+			CamionUnitario cu = CamionUnitario
+					.builder()
+					.placa(dto.getPlaca())
+	    			.peso(dto.getPeso())
+	    			.noEjes(dto.getNoEjes())
+	    			.noLlantas(dto.getNoLlantas())
+	    			.largo(dto.getLargo())
+	    			.marca(dto.getMarca())
+	    			.tipo(dto.getTipo())
+	    			.estatus(dto.getEstatus())
+	    			.modelo(dto.getModelo())
+	    			.sede(Sede.toSede(dto.getSede()))
+	    			.tipoCamion(((CamionUnitarioDTO) dto).getTipoCamion())
+					.build();
+			return cu;
+		} else {
+			Vehiculo v = Vehiculo
+					.builder()
+					.placa(dto.getPlaca())
+	    			.peso(dto.getPeso())
+	    			.noEjes(dto.getNoEjes())
+	    			.noLlantas(dto.getNoLlantas())
+	    			.largo(dto.getLargo())
+	    			.marca(dto.getMarca())
+	    			.tipo(dto.getTipo())
+	    			.estatus(dto.getEstatus())
+	    			.modelo(dto.getModelo())
+	    			.sede(Sede.toSede(dto.getSede()))
+					.build();
+			return v;
+		}
 	}
 
 }

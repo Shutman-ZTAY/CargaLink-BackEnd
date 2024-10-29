@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,7 +22,6 @@ import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Recurso;
 import com.ipn.mx.model.entity.Usuario;
-import com.ipn.mx.model.entity.Vehiculo;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.EstatusTransportista;
@@ -74,7 +72,6 @@ public class RecursoController {
 				
 				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
 				recursoRepository.saveAll(recursos);
-				
 				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
 				ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
 				
@@ -180,6 +177,7 @@ public class RecursoController {
 		List<Recurso> lr = new ArrayList<Recurso>();
 		for (int i = 0; i < recursosDTO.size(); i++) {
 			Recurso recurso = Recurso.toRecurso(recursosDTO.get(i));
+			recurso.setTransportista(transportistaRepository.findById(recurso.getTransportista().getIdUsuario()).get());
 			if (recurso.getVehiculo() == null || !controllerUtils.perteneceAlUsuario(u, recurso.getVehiculo())) {
 				throw new RecursoInvalidoExeption("Vehiculo no valido en el recurso: " + i);
 			}
@@ -192,16 +190,17 @@ public class RecursoController {
 			boolean c1 = 
 					(recurso.getTransportista().getCategoria() == CategoriaTransportista.B) 
 					&& 
-					(recurso.getVehiculo() instanceof Vehiculo);
+					(!(recurso.getVehiculo() instanceof CamionUnitario));
 			boolean c2 =
 					(recurso.getTransportista().getCategoria() == CategoriaTransportista.C) 
 					&& 
 					(recurso.getVehiculo() instanceof CamionUnitario);
 			boolean c3 = (recurso.getTransportista().getCategoria() == CategoriaTransportista.B_y_C);
 			
-			if (!c1 && !c2 && !c3) {
-				throw new RecursoInvalidoExeption("Transportista no valido para el recurso: " + i);
+			if (!(c1 || c2 || c3)) {
+				throw new RecursoInvalidoExeption("Transportista no valido para el recurso: " + c1 + c2 + c3 );
 			}
+			
 			recurso.setOferta(o);
 			lr.add(recurso);
 		}
