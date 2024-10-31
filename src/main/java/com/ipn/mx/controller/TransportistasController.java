@@ -2,6 +2,7 @@ package com.ipn.mx.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -81,7 +82,7 @@ public class TransportistasController {
 	}
 
 	@GetMapping("/representante/transporte/transportista")
-	public ResponseEntity<?> findAllTransportistasByRepresentante(@RequestParam(required = false) String idRepresentanteTrans){
+	public ResponseEntity<?> viewAllTransportistasByRepresentante(@RequestParam(required = false) String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Usuario usr = (Usuario) auth.getPrincipal();
@@ -94,6 +95,24 @@ public class TransportistasController {
 					
 				List<TransportistaSeguro> l = findTransportistasByEmpresa(rt.getEmpresaTransporte().getRazonSocial());
 				return ControllerUtils.okResponse(l);
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	@GetMapping("/representante/transporte/transportista/{idTransportista}")
+	public ResponseEntity<?> viewTransportistasById(@PathVariable String idTransportista){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			Usuario usr = (Usuario) auth.getPrincipal();
+			try {
+				Transportista t = tr.findById(idTransportista).orElseThrow(() -> new NoSuchElementException("Transportista no encontrado"));
+				if (!controllerUtils.perteneceAlUsuario(usr, t))
+					return ControllerUtils.okResponse(TransportistaSeguro.toTransportistaSeguro(t));
+				return ControllerUtils.unauthorisedResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}

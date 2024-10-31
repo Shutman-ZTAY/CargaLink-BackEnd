@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.SemirremolqueDTO;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Usuario;
@@ -72,6 +73,27 @@ public class SemiremolqueController {
 			
 				List<Semirremolque> ls = findSemirremolquesByRepresentante(rt);
 				return ControllerUtils.okResponse(ls);
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	@GetMapping("/{idSemirremolque}")
+	public ResponseEntity<?> viewSemirremolqueById(@PathVariable Integer idSemirremolque){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			Usuario u = (Usuario) auth.getPrincipal();
+			RepresentanteTransporte rt;
+			try {
+				Semirremolque s = semirremolqueRepository
+						.findById(idSemirremolque)
+						.orElseThrow(() -> new NoSuchElementException("Semirremolque no encontrdo"));
+				if (!controllerUtils.perteneceAlUsuario(u, s)) {
+					return ControllerUtils.unauthorisedResponse();
+				}
+				return ControllerUtils.okResponse(SemirremolqueDTO.toSemirremolqueDTO(s));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}

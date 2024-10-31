@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Sede;
@@ -60,6 +61,23 @@ public class VehiculoControler {
 				return ControllerUtils.exeptionsResponse(e);
 			}
 		} else 
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	@GetMapping("/{idVehiculo}")
+	public ResponseEntity<?> viewVehiculoById(@PathVariable String idVehiculo) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			try {
+				Vehiculo v = vehiculoRepository.findById(idVehiculo).orElseThrow(() -> new NoSuchElementException("No se encontro el vehiculo"));
+				if (!controllerUtils.perteneceAlUsuario(u, v))
+					return ControllerUtils.okResponse(VehiculoDTO.toVehiculoDTO(v));	
+				return ControllerUtils.unauthorisedResponse();
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else
 			return ControllerUtils.unauthorisedResponse();
 	}
 	

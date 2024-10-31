@@ -1,6 +1,7 @@
 package com.ipn.mx.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +68,25 @@ public class SedeController {
 				
 				List<SedeDTO> ls = sedeRepository.findAllSedesByEmpresaTransporte(rt.getEmpresaTransporte().getRazonSocial());
 				return ControllerUtils.okResponse(ls);
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	@GetMapping("/{id}")
+	public ResponseEntity<?> viewSede(@PathVariable Integer id){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			try {
+				Sede s = sedeRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Sede no encontrada"));
+				if(!controllerUtils.perteneceAlUsuario(u, s)) {
+					return ControllerUtils.unauthorisedResponse();
+				};
+				return ControllerUtils.okResponse(SedeDTO.toSedeDTO(s));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
