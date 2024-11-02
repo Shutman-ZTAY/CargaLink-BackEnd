@@ -32,6 +32,7 @@ import com.ipn.mx.model.repository.RecursoRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
 import com.ipn.mx.model.repository.VehiculoRepository;
+import com.ipn.mx.service.interfaces.JwtService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,10 +54,12 @@ public class RecursoController {
 	private TransportistaRepository transportistaRepository;
 	@Autowired
 	private SemirremolqueRepository semirremolqueRepository;
+	@Autowired
+	private JwtService jwtService;
 
 	// Asigna un conjunto de recursos a una oferta
 	@PostMapping("/recurso/{idOferta}")
-	public ResponseEntity<?> createRecurso(
+	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
 			@RequestBody(required = true) ContratoRecurso contratoRecurso){
 		
@@ -71,9 +74,13 @@ public class RecursoController {
 					return ControllerUtils.badRequestResponse("Es necesario adjuntar un contrato");
 				
 				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
+				o.setRecursos(recursos);
+				String token = jwtService.generateTokenViaje(o);
+				
 				recursoRepository.saveAll(recursos);
 				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
 				ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
+				ofertaRepository.updateToken(idOferta, token);
 				
 				setEstatusRecursos(recursos, true);
 				return ControllerUtils.createdResponse();
@@ -121,11 +128,15 @@ public class RecursoController {
 					return ControllerUtils.unauthorisedResponse();
 				
 				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
+				o.setRecursos(recursos);
+				String token = jwtService.generateTokenViaje(o);
+				
 				recursoRepository.deleteByidOferta(idOferta);
 				setEstatusRecursos(o.getRecursos(), false);
 				
 				recursoRepository.saveAll(recursos);
 				setEstatusRecursos(recursos, true);
+				ofertaRepository.updateToken(idOferta, token);
 				
 				if(contratoRecurso.getContrato() != null)
 					ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
