@@ -52,5 +52,14 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 			+ "OR o.estatus = EstatusOferta.ENTREGADO)")
 	Optional<Oferta> findByIdTransportista(
 	        @Param("idTransportista") String idTransportista);
+
+	@Transactional
+	@Modifying
+	@Query("UPDATE Oferta o "
+			+ "SET o.tokenViaje = :token "
+			+ "WHERE o.idOferta = :idOferta")
+	void updateToken(
+			@Param("idOferta") Integer idOferta, 
+			@Param("token") String token);
 	
 }
