@@ -3,7 +3,6 @@ package com.ipn.mx.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,6 @@ import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
-import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.entity.Vehiculo;
 import com.ipn.mx.model.enumerated.RolUsuario;
@@ -72,8 +70,8 @@ public class VehiculoControler {
 			try {
 				Vehiculo v = vehiculoRepository.findById(idVehiculo).orElseThrow(() -> new NoSuchElementException("No se encontro el vehiculo"));
 				if (!controllerUtils.perteneceAlUsuario(u, v))
-					return ControllerUtils.okResponse(VehiculoDTO.toVehiculoDTO(v));	
-				return ControllerUtils.unauthorisedResponse();
+					return ControllerUtils.unauthorisedResponse();
+				return ControllerUtils.okResponse(VehiculoDTO.toVehiculoDTO(v));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
