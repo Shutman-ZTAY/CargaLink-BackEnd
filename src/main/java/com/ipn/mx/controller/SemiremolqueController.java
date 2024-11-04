@@ -40,6 +40,7 @@ public class SemiremolqueController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 	
+	//RF08	Gestionar semirremolques
 	@PostMapping("")
 	public ResponseEntity<?> crearSemirremolque(@RequestBody(required = true) Semirremolque semirremolque){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -58,6 +59,7 @@ public class SemiremolqueController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF08	Gestionar semirremolques
 	@GetMapping("")
 	public ResponseEntity<?> viewAllSemirremolques(@RequestBody(required = false) String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -80,6 +82,7 @@ public class SemiremolqueController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF08	Gestionar semirremolques
 	@GetMapping("/{idSemirremolque}")
 	public ResponseEntity<?> viewSemirremolqueById(@PathVariable Integer idSemirremolque){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -101,6 +104,7 @@ public class SemiremolqueController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF08	Gestionar semirremolques
 	@PutMapping("/{idSemirremolque}")
 	public ResponseEntity<?> updateSemirremolque(
 			@PathVariable Integer idSemirremolque, 

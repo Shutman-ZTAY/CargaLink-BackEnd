@@ -36,6 +36,7 @@ public class SedeController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 	
+	//RF09	Gestionar sedes
 	@PostMapping("")
 	public ResponseEntity<?> createSede(@RequestBody(required = true) Sede sede){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -54,6 +55,7 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
 	@GetMapping("")
 	public ResponseEntity<?> viewAllSedes(@RequestParam(required = false) String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -76,6 +78,7 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
 	@GetMapping("/{id}")
 	public ResponseEntity<?> viewSede(@PathVariable Integer id){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -95,6 +98,7 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateSede(
 			@PathVariable Integer id,
@@ -127,6 +131,7 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
 	@DeleteMapping("/{idSede}")
 	public ResponseEntity<?> deleteSede(@PathVariable Integer idSede){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

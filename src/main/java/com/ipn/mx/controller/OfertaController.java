@@ -68,6 +68,7 @@ public class OfertaController {
 		{EstatusOferta.EMBARCANDO, EstatusOferta.EN_CAMINO, 
 			EstatusOferta.PROBLEMA, EstatusOferta.ENTREGADO};
 
+	//RF10	Publicar ofertas de trabajo
 	@PostMapping("/representante/cliente/oferta")
 	public ResponseEntity<?> createOferta(@RequestBody(required = true) CreateOferta createOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -90,6 +91,7 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 
+	//RF12	Gestionar ofertas
 	@GetMapping("/representante/cliente/oferta")
 	public ResponseEntity<?> viewAllOfertasByRepresentante(@RequestParam(required = false) String idRepresentanteCliente){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -112,6 +114,7 @@ public class OfertaController {
 		}
 	}
 
+	//RF12	Gestionar ofertas
 	@DeleteMapping("/representante/cliente/oferta/{idOferta}")
 	public ResponseEntity<?> deleteOferta(@PathVariable Integer idOferta){
 		
@@ -134,9 +137,10 @@ public class OfertaController {
 		}
 	}
 	
+	//RF11	Postulación de empresas de autotransporte
 	//Si el usuario es administrador retorna todas las ofertas aun que no se pueda postular a ellas
 	@GetMapping("/representante/transporte/oferta")
-	public ResponseEntity<?> viewAllOfertas(){
+	public ResponseEntity<?> viewAllOfertasPostulables(){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {

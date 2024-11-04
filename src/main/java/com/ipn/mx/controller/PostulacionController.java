@@ -38,6 +38,7 @@ public class PostulacionController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 
+	//RF11	Postulación de empresas de autotransporte
 	@PostMapping("/transporte/postulacion")
 	public ResponseEntity<?> crearPostulacion(@RequestBody(required = true) Postulacion postulacion){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

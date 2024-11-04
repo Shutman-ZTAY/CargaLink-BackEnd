@@ -49,7 +49,7 @@ public class Transportista extends Usuario {
 
     @ManyToOne
     @JoinColumn(name = "sede", referencedColumnName = "idSede", 
-    			foreignKey = @ForeignKey(name = "idSedeT"))
+    			foreignKey = @ForeignKey(name = "idSedeT"), nullable = false)
     private Sede sede;
     
     @JsonIgnore

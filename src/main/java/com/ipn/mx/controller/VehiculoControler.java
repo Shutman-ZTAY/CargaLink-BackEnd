@@ -42,6 +42,7 @@ public class VehiculoControler {
 	@Autowired 
 	private ControllerUtils controllerUtils;
 
+	// RF07	Gestionar vehículos
 	@PostMapping("")
 	public ResponseEntity<?> createVehiculo(@RequestBody(required = true) Vehiculo vehiculo) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -62,6 +63,7 @@ public class VehiculoControler {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	// RF07	Gestionar vehículos
 	@GetMapping("/{idVehiculo}")
 	public ResponseEntity<?> viewVehiculoById(@PathVariable String idVehiculo) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -79,6 +81,7 @@ public class VehiculoControler {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	// RF07	Gestionar vehículos
 	@GetMapping("")
 	public ResponseEntity<?> viewAllVehiculos(@RequestBody(required = false) String idRepresentanteAutotransporte) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -97,6 +100,7 @@ public class VehiculoControler {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	// RF07	Gestionar vehículos
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateVehiculo(
 			@PathVariable String id, 
@@ -122,6 +126,7 @@ public class VehiculoControler {
 		}
 	}
 	
+	// RF07	Gestionar vehículos
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteVehiculo(@PathVariable String id) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

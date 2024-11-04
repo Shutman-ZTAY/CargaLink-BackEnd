@@ -24,6 +24,7 @@ import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.dto.UpdateTransportista;
 import com.ipn.mx.model.dto.UpdateTransportistaRepresentante;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
+import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
@@ -48,6 +49,7 @@ public class TransportistasController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 
+	//RF05	Crear cuentas para transportistas
 	@PostMapping("/representante/transporte/transportista")
 	public ResponseEntity<?> createTransportista(@RequestBody(required = true) Transportista transportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -58,17 +60,8 @@ public class TransportistasController {
 					String mensaje = "Ya existe este usuario";
 					return ControllerUtils.badRequestResponse(mensaje);
 				}
-				if(transportista.getSede() != null 
-						&& !sr.existsById(transportista.getSede().getIdSede()) ) {
-					try {
-						sr.save(transportista.getSede());
-					} catch (Exception e) {
-						String mensaje = "Sede incompleta, registre los de mas datos";
-						return ControllerUtils.badRequestResponse(mensaje);
-					}
-				} else if (transportista.getSede() == null && !sr.existsById(transportista.getSede().getIdSede())) {
-					String mensaje = "El transportista debe asociarse a una sede";
-					return ControllerUtils.badRequestResponse(mensaje); 
+				if(transportista.getSede() != null && !sr.existsById(transportista.getSede().getIdSede()) ) {
+					sr.save(transportista.getSede());
 				}
 				transportista.setPassword(pe.encode(transportista.getPassword()));
 				tr.save(transportista);
@@ -81,6 +74,7 @@ public class TransportistasController {
 		}
 	}
 
+	//RF06	Gestionar cuentas de transportistas
 	@GetMapping("/representante/transporte/transportista")
 	public ResponseEntity<?> viewAllTransportistasByRepresentante(@RequestParam(required = false) String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -103,6 +97,7 @@ public class TransportistasController {
 		}
 	}
 	
+	//RF06	Gestionar cuentas de transportistas
 	@GetMapping("/representante/transporte/transportista/{idTransportista}")
 	public ResponseEntity<?> viewTransportistasById(@PathVariable String idTransportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -111,8 +106,8 @@ public class TransportistasController {
 			try {
 				Transportista t = tr.findById(idTransportista).orElseThrow(() -> new NoSuchElementException("Transportista no encontrado"));
 				if (!controllerUtils.perteneceAlUsuario(usr, t))
-					return ControllerUtils.okResponse(TransportistaSeguro.toTransportistaSeguro(t));
-				return ControllerUtils.unauthorisedResponse();
+					return ControllerUtils.unauthorisedResponse();
+				return ControllerUtils.okResponse(TransportistaSeguro.toTransportistaSeguro(t));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -121,6 +116,7 @@ public class TransportistasController {
 		}
 	}
 	
+	//RF06	Gestionar cuentas de transportistas
 	@PutMapping("/representante/transporte/transportista/{id}")
 	public ResponseEntity<?> updateTransportistaFromRepresentante(
 			@PathVariable String id,
@@ -141,19 +137,12 @@ public class TransportistasController {
 			if (updateTransportistaRepresentante.getSede() != null)
 				newSede = updateTransportistaRepresentante.getSede().getIdSede();
 			
-			if (!controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), tr.findById(id).orElse(null)))
-				return ControllerUtils.badRequestResponse();
-			if(!sr.existsById(newSede)) {
-				try {
-					sr.save(updateTransportistaRepresentante.getSede());
-				} catch (Exception e) {
-					return ControllerUtils.exeptionsResponse(e);
-				}
-			}
-			
 			try {
+				Transportista t = tr.findById(id).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
+				if (!controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), t))
+					return ControllerUtils.unauthorisedResponse();
 				tr.updateTransportistaFromRepresentante(tbd.getIdUsuario(), newExperiencia, newCategoria, newSede);
-				return ResponseEntity.ok(null);
+				return ControllerUtils.okResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -162,17 +151,17 @@ public class TransportistasController {
 		}
 	}
 	
+	//RF06	Gestionar cuentas de transportistas
 	@DeleteMapping("/representante/transporte/transportista/{id}")
 	public ResponseEntity<?> deleteTransportista(@PathVariable String id){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
-				if (controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), tr.findById(id).orElse(null))) {
-					tr.deleteById(id);
-					return ResponseEntity.ok(null);
-				} else {
-					return ControllerUtils.badRequestResponse();
-				}
+				Transportista t = tr.findById(id).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
+				if (!controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), t))
+					return ControllerUtils.unauthorisedResponse();
+				tr.deleteById(id);
+				return ControllerUtils.okResponse();
 			} catch (Exception e) {
 		        return ControllerUtils.exeptionsResponse(e);
 			}
@@ -181,26 +170,26 @@ public class TransportistasController {
 		}
 	}
 
-	//TODO Buscar como cambiar la contraseña con tal de que el usuario se vuelva a loguear
-	@PutMapping("transportista/editar")
+	//RF06	Gestionar cuentas de transportistas
+	@PutMapping("/transportista/editar")
 	public ResponseEntity<?> updateTransportista(@RequestBody UpdateTransportista updateTransportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
 			Transportista transportistaAuth = (Transportista) auth.getPrincipal();
-			transportistaAuth = tr.findById(transportistaAuth.getIdUsuario()).get();
-			String newPassword = transportistaAuth.getPassword();
-			String newTelefono = transportistaAuth.getTelefono();
-			EstatusTransportista newEstatus = transportistaAuth.getEstatusTransportista();
-			
-			if (updateTransportista.getPassword() != null)
-				newPassword = pe.encode(updateTransportista.getPassword());
-			if (updateTransportista.getTelefono() != null) 
-				newTelefono = updateTransportista.getTelefono();
-			if (updateTransportista.getEstatusTransportista() != null)
-				newEstatus = updateTransportista.getEstatusTransportista();
-			
 			try {
+				transportistaAuth = tr.findById(transportistaAuth.getIdUsuario()).get();
+				String newPassword = transportistaAuth.getPassword();
+				String newTelefono = transportistaAuth.getTelefono();
+				EstatusTransportista newEstatus = transportistaAuth.getEstatusTransportista();
+				
+				if (updateTransportista.getPassword() != null)
+					newPassword = pe.encode(updateTransportista.getPassword());
+				if (updateTransportista.getTelefono() != null) 
+					newTelefono = updateTransportista.getTelefono();
+				if (updateTransportista.getEstatusTransportista() != null)
+					newEstatus = updateTransportista.getEstatusTransportista();
+				
 				tr.updateTransportista(transportistaAuth.getIdUsuario(), newPassword, newTelefono, newEstatus);
 				return ResponseEntity.ok(null);
 			} catch (Exception e) {

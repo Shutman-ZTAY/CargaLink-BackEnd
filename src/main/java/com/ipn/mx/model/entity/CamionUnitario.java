@@ -35,7 +35,7 @@ public class CamionUnitario extends Vehiculo{
 	private static final long serialVersionUID = 1L;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipoCamion", nullable = true)
+    @Column(name = "tipoCamion", nullable = false)
     private TipoCamion tipoCamion;
 
 }

@@ -22,7 +22,7 @@ public class AuthController {
 	@Autowired
 	private AuthService authService;
 	
-	
+	//RF01	Iniciar sesión
 	@PostMapping(value = "/login")
 	public ResponseEntity<?> login(@RequestBody LoginUsuario usuario) {
 		try {
@@ -34,26 +34,7 @@ public class AuthController {
 		}
 	}
 	
-	/*
-	@PostMapping(value = "/transportista")
-	public ResponseEntity<?> registerTransportista(
-			@RequestBody Transportista transportista) {
-		transportista.setRol(RolUsuario.TRANSPORTISTA);
-		try {
-			AuthResponse ar = authService.registerTransportista(transportista);
-			if (ar != null) {
-				return ResponseEntity.status(HttpStatus.CREATED).body(ar);
-			} else {
-				String mensajeError = "Transportista incompleto, se debe asociar a una sede";
-		        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensajeError);
-			}
-		} catch (Exception e) {
-			String mensajeError = "Error interno en el servidor";
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
-		}
-	}
-	*/
-	
+	//RF02 Registro
 	@PostMapping(value = "/representante/cliente")
 	public ResponseEntity<?> registerRepresentanteCliente(
 			@RequestBody RepresentanteCliente representanteCliente) {
@@ -66,6 +47,7 @@ public class AuthController {
 		}
 	}
 	
+	//RF02 Registro
 	@PostMapping(value = "/representante/transporte")
 	public ResponseEntity<?> registerRepresentanteTransporte(
 			@RequestBody RepresentanteTransporte representanteTransporte) {

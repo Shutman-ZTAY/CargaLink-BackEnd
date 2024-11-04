@@ -47,19 +47,19 @@ public class Oferta implements Serializable {
     @Column(name = "descripcion", length = 250, nullable = true)
     private String descripcion;
 
-    @Column(name = "lugarInicio", length = 150, nullable = true)
+    @Column(name = "lugarInicio", length = 150, nullable = false)
     private String lugarInicio;
 
     @Column(name = "horaInicio", nullable = true)
     private LocalTime horaInicio;
 
-    @Column(name = "lugarDestino", length = 150, nullable = true)
+    @Column(name = "lugarDestino", length = 150, nullable = false)
     private String lugarDestino;
 
     @Column(name = "horaTermino", nullable = true)
     private LocalTime horaTermino;
 
-    @Column(name = "precio", precision = 10, scale = 2, nullable = true)
+    @Column(name = "precio", precision = 10, scale = 2, nullable = false)
     private BigDecimal precio;
 
     @Column(name = "fechaInicio", nullable = true)
