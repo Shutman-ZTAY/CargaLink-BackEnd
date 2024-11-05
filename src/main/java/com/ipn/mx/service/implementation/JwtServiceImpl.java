@@ -14,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.ipn.mx.model.dto.RecursoDTO;
-import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Recurso;
 import com.ipn.mx.model.entity.RepresentanteCliente;

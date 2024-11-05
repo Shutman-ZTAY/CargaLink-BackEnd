@@ -22,9 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.exeptions.InvalidRequestExeption;
 import com.ipn.mx.model.dto.CreateOferta;
+import com.ipn.mx.model.dto.CalificacionToken;
 import com.ipn.mx.model.dto.OfertaDTO;
-import com.ipn.mx.model.dto.TokenViaje;
 import com.ipn.mx.model.dto.UpdEstatus;
+import com.ipn.mx.model.entity.Calificacion;
 import com.ipn.mx.model.entity.Carga;
 import com.ipn.mx.model.entity.Contenedor;
 import com.ipn.mx.model.entity.Embalaje;
@@ -36,6 +37,7 @@ import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.EstatusRepTrans;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.enumerated.TipoCarga;
+import com.ipn.mx.model.repository.CalificacionRepository;
 import com.ipn.mx.model.repository.CargaRepository;
 import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
@@ -60,6 +62,8 @@ public class OfertaController {
 	@Autowired
 	private CargaRepository cargaRepository;
 	@Autowired
+	private CalificacionRepository calificacionRepository;
+	@Autowired
 	private ControllerUtils controllerUtils;
 	@Autowired
 	private JwtService jwtService;
@@ -75,7 +79,7 @@ public class OfertaController {
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
-				Oferta oferta = CreateOferta.toOferta(createOferta);
+				Oferta oferta = Oferta.toOferta(createOferta);
 				oferta.setRepresentanteCliente((RepresentanteCliente) u);
 				oferta.setEstatus(EstatusOferta.OFERTA);
 				if(oferta.getCargas() == null)
@@ -165,6 +169,7 @@ public class OfertaController {
 		}
 	}
 	
+	//RF17	Realizar viaje
 	@GetMapping("/transportista/oferta")
 	public ResponseEntity<?> viewFromTransportista(@RequestBody String idTransportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -183,6 +188,7 @@ public class OfertaController {
 		}
 	}
 	
+	//RF17	Realizar viaje
 	@PatchMapping("/transportista/oferta")
 	public ResponseEntity<?> updateEstatusFromTransportista(@RequestBody(required = false) UpdEstatus updEstatus){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -210,22 +216,24 @@ public class OfertaController {
 		}
 	}
 	
+	//RF18	Finalizar viaje
 	@PatchMapping("/representante/cliente/oferta/finalizar")
-	public ResponseEntity<?> finalizarViaje(@RequestBody(required = true) TokenViaje token){
+	public ResponseEntity<?> finalizarViaje(@RequestBody(required = true) CalificacionToken calificacionToken){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
-				Claims c = jwtService.getAllClaims(token.getToken());
+				Claims c = jwtService.getAllClaims(calificacionToken.getToken());
 				Oferta oferta = ofertaRepository.findById(c.get("idOferta", Integer.class))
 						.orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
-				if (!oferta.getTokenViaje().equals(token.getToken()) || !controllerUtils.perteneceAlUsuario(u, oferta)) {
+				if (!oferta.getTokenViaje().equals(calificacionToken.getToken()) || !controllerUtils.perteneceAlUsuario(u, oferta)) {
 					return ControllerUtils.unauthorisedResponse();
 				}
 				oferta.setHoraTermino(LocalTime.now());
 				oferta.setFechaFin(LocalDate.now());
 				oferta.setEstatus(EstatusOferta.FINALIZADO);
 				ofertaRepository.save(oferta);
+				calificacionRepository.save(Calificacion.toCalificacion(calificacionToken));
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -234,6 +242,7 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF18	Finalizar viaje
 	@PatchMapping("/representante/cliente/oferta/pagar/{idOferta}")
 	public ResponseEntity<?> pagarViaje(@PathVariable Integer idOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

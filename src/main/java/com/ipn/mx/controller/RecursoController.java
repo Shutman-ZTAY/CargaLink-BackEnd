@@ -57,7 +57,7 @@ public class RecursoController {
 	@Autowired
 	private JwtService jwtService;
 
-	// Asigna un conjunto de recursos a una oferta
+	//RF15	Asignar recursos
 	@PostMapping("/recurso/{idOferta}")
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
@@ -91,6 +91,7 @@ public class RecursoController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 
+	//RF15	Asignar recursos
 	// Obtiene todos los recursos asociados a una oferta
 	@GetMapping("/recurso/{idOferta}")
 	public ResponseEntity<?> viewAllRecursoByOferta(@PathVariable Integer idOferta){
@@ -113,6 +114,7 @@ public class RecursoController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF15	Asignar recursos
 	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
 	@PutMapping("/recurso/{idOferta}")
 	public ResponseEntity<?> updeteRecursos(
@@ -149,6 +151,7 @@ public class RecursoController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF15	Asignar recursos
 	// Elimina solamente un recurso de la base de datos
 	@DeleteMapping("/recurso/{idRecurso}")
 	public ResponseEntity<?> deleteRecurso(@PathVariable Integer idRecurso){

@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.ipn.mx.model.dto.CamionUnitarioDTO;
-import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.MarcaVehiculo;

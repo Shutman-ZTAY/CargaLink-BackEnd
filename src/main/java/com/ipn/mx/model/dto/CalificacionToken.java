@@ -9,8 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TokenViaje {
+public class CalificacionToken {
 
+    private Integer puntualidad;
+    private Integer estadoCarga;
+    private Integer precio;
+    private Integer atencion;
+    private String comentario;
 	private String token;
 	
 }

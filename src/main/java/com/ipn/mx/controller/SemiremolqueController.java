@@ -88,7 +88,6 @@ public class SemiremolqueController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Usuario u = (Usuario) auth.getPrincipal();
-			RepresentanteTransporte rt;
 			try {
 				Semirremolque s = semirremolqueRepository
 						.findById(idSemirremolque)

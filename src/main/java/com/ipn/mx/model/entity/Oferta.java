@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ipn.mx.model.dto.CreateOferta;
 import com.ipn.mx.model.enumerated.EstatusOferta;
 
 import jakarta.persistence.CascadeType;
@@ -104,5 +105,20 @@ public class Oferta implements Serializable {
     @PrePersist
     public void prePersist() {
     	this.fechaCreacion = LocalDateTime.now();
+    }
+    
+    public static Oferta toOferta(CreateOferta createOferta) {
+    	Oferta o = Oferta
+    			.builder()
+    			.descripcion(createOferta.getDescripcion())
+    			.lugarInicio(createOferta.getLugarInicio())
+    			.lugarDestino(createOferta.getLugarDestino())
+    			.precio(createOferta.getPrecio())
+    			.pesoTotal(createOferta.getPesoTotal())
+    			.cargas(createOferta.getCargas())
+    			.horaTermino(createOferta.getHoraTermino())
+    			.fechaFin(createOferta.getFechaFin())
+    			.build();
+    	return o;
     }
 }

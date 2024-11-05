@@ -52,8 +52,7 @@ public class PostulacionController {
 						postulacion.getRepresentanteTransporte().getIdUsuario());
 				if (exist)
 					return ControllerUtils.badRequestResponse("Ya existe una postulacion");
-				else
-					postulacionRepository.save(postulacion);
+				postulacionRepository.save(postulacion);
 				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -62,6 +61,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF11	Postulación de empresas de autotransporte
 	@GetMapping("/transporte/postulacion")
 	public ResponseEntity<?> viewAllPostulacionByRepresentanteTransporte(
 			@RequestBody(required = false) String idRepresentanteTransporte){
@@ -84,6 +84,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF11	Postulación de empresas de autotransporte
 	@DeleteMapping("/transporte/postulacion/{idPostulacion}")
 	public ResponseEntity<?> deletePostulacion(
 			@PathVariable Integer idPostulacion){
@@ -108,6 +109,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF14	Aceptar postulación
 	@GetMapping("/cliente/postulacion/{idOferta}")
 	public ResponseEntity<?> viewAllPostulacionByOferta(
 			@PathVariable Integer idOferta){
@@ -129,6 +131,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 
+	//RF14	Aceptar postulación
 	@PatchMapping("/cliente/postulacion")
 	public ResponseEntity<?> aceptarPostulacion(
 			@RequestBody Postulacion postulacion){
