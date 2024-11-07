@@ -38,6 +38,8 @@ public class FilesServiceImpl implements FilesService {
 	private String PATH_IMG;
 	@Value("${media.location.pdf}")
 	private String PATH_PDF;
+	private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
+    private static final String KEY = "J8h4e2m9p1a6c5d3";
 	
 	@Override
 	@PostConstruct
@@ -162,10 +164,6 @@ public class FilesServiceImpl implements FilesService {
 	private Path getPathPdf(String filename) {
 		return Paths.get(PATH_PDF).resolve(filename).toAbsolutePath();
 	}
-	
-	
-	private static final String ALGORITHM = "AES/CBC/PKCS5Padding";
-    private static final String KEY = "1234567890123456";
 
     private void encryptFile(File inputFile, File outputFile) throws Exception {
         SecretKey secretKey = new SecretKeySpec(KEY.getBytes(), "AES");
