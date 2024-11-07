@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,45 +42,66 @@ public class AuthController {
 	}
 	
 	//RF02 Registro
-	@PostMapping(value = "/representante/cliente", consumes = { "multipart/form-data" })
+	@PostMapping(value = "/representante/cliente", consumes = { "application/octet-stream", "multipart/form-data" })
 	public ResponseEntity<?> registerRepresentanteCliente(
 			@RequestPart("representanteCliente") RepresentanteCliente representanteCliente,
-			@RequestPart("image") MultipartFile imagen) throws IOException {
+			@RequestPart("image") MultipartFile imagen) {
 		
 		representanteCliente.setRol(RolUsuario.REPRESENTANTE_CLIENTE);
-		
+		String filename = null;
 		if(!imagen.isEmpty() && representanteCliente.getEmpresaCliente() != null) {
-			String filename = filesService.saveImage(imagen);
-			representanteCliente.getEmpresaCliente().setLogo(filename);
+			try {
+				filename = filesService.saveImage(imagen);
+				representanteCliente.getEmpresaCliente().setLogo(filename);
+			} catch (Exception e) {
+				if (filename != null)
+					filesService.delete(filename);
+				return ControllerUtils.exeptionsResponse(new RuntimeException("No se pudo guardar los archivos"));
+			}
 		}
 		try {
 			return ResponseEntity.ok(authService.registerReprCliente(representanteCliente));
 		} catch (Exception e) {
+			if (filename != null)
+				filesService.delete(filename);
 			String mensajeError = "Error interno en el servidor: " + e.getMessage();
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
 		}
 	}
 	
 	//RF02 Registro
-	@PostMapping(value = "/representante/transporte", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+	@PostMapping(value = "/representante/transporte", consumes = { "application/octet-stream", "multipart/form-data" })
 	public ResponseEntity<?> registerRepresentanteTransporte(
 			@RequestPart("representanteTransporte") RepresentanteTransporte representanteTransporte,
 			@RequestPart("file") MultipartFile file,
-	        @RequestPart("image") MultipartFile imagen) throws IOException {
+	        @RequestPart("image") MultipartFile imagen) {
 		
 		representanteTransporte.setRol(RolUsuario.REPRESENTANTE_TRANSPORTE);
 		representanteTransporte.setEstatusRepTrans(EstatusRepTrans.NO_VALIDO);
-		
+		String imagename = null;
+		String filename = null;
 		if(!file.isEmpty() && !imagen.isEmpty() && representanteTransporte.getEmpresaTransporte() != null) {
-			String imagename = filesService.saveImage(imagen);
-			String filename = filesService.savePdf(file);
-			representanteTransporte.getEmpresaTransporte().setLogo(imagename);
-			representanteTransporte.getEmpresaTransporte().setDocumentoFiscal(filename);
+			try {
+				imagename = filesService.saveImage(imagen);
+				filename = filesService.savePdf(file);
+				representanteTransporte.getEmpresaTransporte().setLogo(imagename);
+				representanteTransporte.getEmpresaTransporte().setDocumentoFiscal(filename);	
+			} catch (Exception e) {
+				if (imagename != null)
+					filesService.delete(imagename);
+				if (filename != null)
+					filesService.delete(filename);
+				return ControllerUtils.exeptionsResponse(new RuntimeException("No se pudo guardar los archivos"));
+			}
 		}
 		try {
 			return ResponseEntity.ok(authService.registerReprTransporte(representanteTransporte));
 		} catch (Exception e) {
 			String mensajeError = "Error interno en el servidor: " + e.getMessage();
+			if (imagename != null)
+				filesService.delete(imagename);
+			if (filename != null)
+				filesService.delete(filename);
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
 		}
 	}

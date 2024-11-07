@@ -40,7 +40,7 @@ public class RepresentanteTransporte extends Usuario {
 	
 	@ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "empresaTransporte", referencedColumnName = "transporteRazon", 
-    			foreignKey = @ForeignKey(name = "fk_transporteRazonRT"))
+    			foreignKey = @ForeignKey(name = "fk_transporteRazonRT"), nullable = true)
 	private EmpresaAutotransporte empresaTransporte;
 	
 	@JsonIgnore
