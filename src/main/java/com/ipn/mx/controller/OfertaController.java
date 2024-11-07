@@ -117,6 +117,27 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 		}
 	}
+	
+	//RF12	Gestionar ofertas
+	@GetMapping("/representante/cliente/oferta/{idOferta}")
+	public ResponseEntity<?> viewOfertaById(@PathVariable Integer idOferta){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
+			RepresentanteCliente rc;
+			try {
+				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				if (!controllerUtils.perteneceAlUsuario(u, o))
+					return ControllerUtils.unauthorisedResponse();
+				
+				return ControllerUtils.okResponse(OfertaDTO.ofertatoOfertaDTO(o));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
 
 	//RF12	Gestionar ofertas
 	@DeleteMapping("/representante/cliente/oferta/{idOferta}")
