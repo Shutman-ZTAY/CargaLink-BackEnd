@@ -49,6 +49,12 @@ public class Calificacion implements Serializable {
 
     @Column(name = "comentario", length = 250, nullable = true)
     private String comentario;
+    
+    @Column(name = "clasificacionComentario", nullable = true)
+    private Integer clasificacionComentario;
+    
+    @Column(name = "intencidadComentario", precision = 2, scale = 1, nullable = true)
+    private BigDecimal intencidadComentario;
 
     @Column(name = "promedio", precision = 2, scale = 1, nullable = true)
     private BigDecimal promedio;
