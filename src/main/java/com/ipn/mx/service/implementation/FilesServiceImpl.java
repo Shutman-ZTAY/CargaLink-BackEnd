@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.SecureRandom;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -94,8 +95,8 @@ public class FilesServiceImpl implements FilesService {
         String uniqueFilename = uuid + file.getOriginalFilename();
         Path encryptedFilePath = getPathPdf(uniqueFilename);
 
-        Path tempFilePath = Files.createTempFile("temp_" + uuid, file.getOriginalFilename());
-        Files.copy(file.getInputStream(), tempFilePath);
+        Path tempFilePath = Files.createTempFile("temp_" + uuid + file.getOriginalFilename(), ".pdf");
+        Files.copy(file.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
 
         File inputFile = tempFilePath.toFile();
         File outputFile = encryptedFilePath.toFile();
