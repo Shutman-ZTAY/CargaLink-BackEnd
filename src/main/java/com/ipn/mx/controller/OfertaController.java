@@ -124,8 +124,7 @@ public class OfertaController {
 	public ResponseEntity<?> viewOfertaById(@PathVariable Integer idOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
-			RepresentanteCliente rc;
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE) || ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if (!controllerUtils.perteneceAlUsuario(u, o))
