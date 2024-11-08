@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.entity.Empresa;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Postulacion;
 import com.ipn.mx.model.entity.RepresentanteCliente;
@@ -18,6 +19,7 @@ import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.entity.Vehiculo;
+import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.PostulacionRepository;
@@ -26,6 +28,7 @@ import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
+import com.ipn.mx.model.repository.UsuarioRepository;
 import com.ipn.mx.model.repository.VehiculoRepository;
 
 @Service
@@ -47,6 +50,8 @@ public class ControllerUtils {
 	private VehiculoRepository vehiculoRepository;
 	@Autowired
 	private PostulacionRepository postulacionRepository;
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 	
 	public static ResponseEntity<?> exeptionsResponse(Exception e){
 		String messageError = "Error interno en el servidor: " + e.getMessage();
@@ -88,6 +93,24 @@ public class ControllerUtils {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
 	}
 	
+	public boolean perteneceAlUsuario(Usuario u, Empresa empresa){
+		if (empresa == null) {
+			return false;
+		}
+		u = usuarioRepository.findById(u.getIdUsuario()).get();
+		if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE || u.getRol() == RolUsuario.REPRESENTANTE_CLIENTE) {
+			if (u instanceof RepresentanteTransporte) 
+				return ((RepresentanteTransporte) u).getEmpresaTransporte().equals(empresa);
+			else if (u instanceof RepresentanteCliente)
+				return ((RepresentanteCliente) u).getEmpresaCliente().equals(empresa);
+			else
+				return false;
+		} else if (u.getRol() == RolUsuario.ADMINISTRADOR)
+			return true;
+		else
+			return false;
+	}
+	
 	public boolean perteneceAlUsuario(Usuario u, Sede sede){
 		if (sede == null) {
 			return false;
@@ -120,7 +143,7 @@ public class ControllerUtils {
 			return true;
 		else {
 			boolean exist = postulacionRepository.existByOfertaAndRepresentanteTransporte(oferta.getIdOferta(), u.getIdUsuario());
-			if (exist)
+			if (exist && oferta.getEstatus() != EstatusOferta.OFERTA)
 				return true;
 			else
 				return false;

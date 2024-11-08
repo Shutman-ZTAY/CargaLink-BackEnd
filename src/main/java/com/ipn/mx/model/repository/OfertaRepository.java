@@ -22,6 +22,10 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	Optional<Oferta> findOfertaByClienteAndId(
 			@Param("idOferta") Integer idOferta,
 			@Param("idReprCliente")String idUsuario);
+	
+	@Query("SELECT o FROM Oferta o WHERE o.contrato = :contrato")
+	Optional<Oferta> findByContrato(
+			@Param("contrato")String contrato);
 
 	@Query("SELECT o FROM Oferta o WHERE o.estatus = OFERTA")
 	List<Oferta> findAllOfertasDisponibles();
