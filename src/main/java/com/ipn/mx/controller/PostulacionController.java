@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.PostulacionDTO;
@@ -38,6 +39,7 @@ public class PostulacionController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 
+	//RF11	Postulación de empresas de autotransporte
 	@PostMapping("/transporte/postulacion")
 	public ResponseEntity<?> crearPostulacion(@RequestBody(required = true) Postulacion postulacion){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -51,8 +53,7 @@ public class PostulacionController {
 						postulacion.getRepresentanteTransporte().getIdUsuario());
 				if (exist)
 					return ControllerUtils.badRequestResponse("Ya existe una postulacion");
-				else
-					postulacionRepository.save(postulacion);
+				postulacionRepository.save(postulacion);
 				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -61,9 +62,10 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF11	Postulación de empresas de autotransporte
 	@GetMapping("/transporte/postulacion")
 	public ResponseEntity<?> viewAllPostulacionByRepresentanteTransporte(
-			@RequestBody(required = false) String idRepresentanteTransporte){
+			@RequestParam(required = false, name = "idRepresentanteCliente") String idRepresentanteTransporte){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
@@ -83,6 +85,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF11	Postulación de empresas de autotransporte
 	@DeleteMapping("/transporte/postulacion/{idPostulacion}")
 	public ResponseEntity<?> deletePostulacion(
 			@PathVariable Integer idPostulacion){
@@ -107,6 +110,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF14	Aceptar postulación
 	@GetMapping("/cliente/postulacion/{idOferta}")
 	public ResponseEntity<?> viewAllPostulacionByOferta(
 			@PathVariable Integer idOferta){
@@ -128,6 +132,7 @@ public class PostulacionController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 
+	//RF14	Aceptar postulación
 	@PatchMapping("/cliente/postulacion")
 	public ResponseEntity<?> aceptarPostulacion(
 			@RequestBody Postulacion postulacion){

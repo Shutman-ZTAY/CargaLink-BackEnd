@@ -1,7 +1,9 @@
 package com.ipn.mx.service.implementation;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -11,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.ipn.mx.model.dto.RecursoDTO;
+import com.ipn.mx.model.entity.Oferta;
+import com.ipn.mx.model.entity.Recurso;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Usuario;
@@ -93,7 +98,26 @@ public class JwtServiceImpl implements JwtService {
 		return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
 	}
 	
-	private Claims getAllClaims(String token) {
+	@Override
+	public String generateTokenViaje(Oferta oferta) {
+		List<Recurso> lr = oferta.getRecursos();
+		List<RecursoDTO> recursos = new ArrayList<RecursoDTO>();
+		for (Recurso recurso : lr) {
+			recursos.add(RecursoDTO.toRecursoDTO(recurso));
+		}
+		HashMap<String, Object> claims = new HashMap<>();
+		claims.put("recursos", recursos);
+		claims.put("idOferta", oferta.getIdOferta());
+		return Jwts.builder()
+				.claims(claims)
+				.subject(oferta.getRepresentanteCliente().getIdUsuario())
+				.issuedAt(new Date(System.currentTimeMillis()))
+				.signWith(getKey())
+				.compact();
+	}
+	
+	@Override
+	public Claims getAllClaims(String token) {
 		return Jwts
 				.parser()
 				.verifyWith(getKey())

@@ -1,6 +1,5 @@
 package com.ipn.mx.model.dto;
 
-import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 
 import lombok.AllArgsConstructor;
@@ -17,6 +16,6 @@ public class UpdateTransportistaRepresentante {
 	private String idUsuario;
 	private Integer experiencia;
 	private CategoriaTransportista categoria;
-	private Sede sede;
+	private SedeDTO sede;
 	
 }

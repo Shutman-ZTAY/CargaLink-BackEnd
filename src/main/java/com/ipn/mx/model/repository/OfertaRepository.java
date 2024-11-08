@@ -22,6 +22,10 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	Optional<Oferta> findOfertaByClienteAndId(
 			@Param("idOferta") Integer idOferta,
 			@Param("idReprCliente")String idUsuario);
+	
+	@Query("SELECT o FROM Oferta o WHERE o.contrato = :contrato")
+	Optional<Oferta> findByContrato(
+			@Param("contrato")String contrato);
 
 	@Query("SELECT o FROM Oferta o WHERE o.estatus = OFERTA")
 	List<Oferta> findAllOfertasDisponibles();
@@ -34,5 +38,32 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	void updateEstatusOferta(
 			@Param("idOferta") Integer idOferta, 
 			@Param("estatus") EstatusOferta estatus);
+	
+	@Transactional
+	@Modifying
+	@Query("UPDATE Oferta o "
+			+ "SET o.contrato = :contrato "
+			+ "WHERE o.idOferta = :idOferta")
+	void updateContrato(
+			@Param("idOferta") Integer idOferta, 
+			@Param("contrato") String contrato);
+
+	@Query("SELECT o FROM Oferta o "
+			+ "JOIN o.recursos r "
+			+ "WHERE r.transportista.idUsuario = :idTransportista "
+			+ "AND (o.estatus = EstatusOferta.RECOGIENDO OR o.estatus = EstatusOferta.EMBARCANDO "
+			+ "OR o.estatus = EstatusOferta.EN_CAMINO OR o.estatus = EstatusOferta.PROBLEMA "
+			+ "OR o.estatus = EstatusOferta.ENTREGADO)")
+	Optional<Oferta> findByIdTransportista(
+	        @Param("idTransportista") String idTransportista);
+
+	@Transactional
+	@Modifying
+	@Query("UPDATE Oferta o "
+			+ "SET o.tokenViaje = :token "
+			+ "WHERE o.idOferta = :idOferta")
+	void updateToken(
+			@Param("idOferta") Integer idOferta, 
+			@Param("token") String token);
 	
 }

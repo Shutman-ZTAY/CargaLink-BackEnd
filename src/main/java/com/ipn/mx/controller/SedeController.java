@@ -1,6 +1,7 @@
 package com.ipn.mx.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class SedeController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 	
+	//RF09	Gestionar sedes
 	@PostMapping("")
 	public ResponseEntity<?> createSede(@RequestBody(required = true) Sede sede){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -53,8 +55,10 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
 	@GetMapping("")
-	public ResponseEntity<?> viewAllSedes(@RequestParam(required = false) String idRepresentanteTrans){
+	public ResponseEntity<?> viewAllSedes(
+			@RequestParam(required = false, name = "idRepresentanteTrans") String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -75,6 +79,27 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
+	@GetMapping("/{id}")
+	public ResponseEntity<?> viewSede(@PathVariable Integer id){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			try {
+				Sede s = sedeRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Sede no encontrada"));
+				if(!controllerUtils.perteneceAlUsuario(u, s)) {
+					return ControllerUtils.unauthorisedResponse();
+				};
+				return ControllerUtils.okResponse(SedeDTO.toSedeDTO(s));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	//RF09	Gestionar sedes
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateSede(
 			@PathVariable Integer id,
@@ -107,6 +132,7 @@ public class SedeController {
 		}
 	}
 	
+	//RF09	Gestionar sedes
 	@DeleteMapping("/{idSede}")
 	public ResponseEntity<?> deleteSede(@PathVariable Integer idSede){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

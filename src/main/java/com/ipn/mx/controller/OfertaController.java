@@ -1,5 +1,7 @@
 package com.ipn.mx.controller;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -10,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,8 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ipn.mx.exeptions.InvalidRequestExeption;
 import com.ipn.mx.model.dto.CreateOferta;
+import com.ipn.mx.model.dto.CalificacionToken;
 import com.ipn.mx.model.dto.OfertaDTO;
+import com.ipn.mx.model.dto.UpdEstatus;
+import com.ipn.mx.model.entity.Calificacion;
 import com.ipn.mx.model.entity.Carga;
 import com.ipn.mx.model.entity.Contenedor;
 import com.ipn.mx.model.entity.Embalaje;
@@ -30,13 +37,18 @@ import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.EstatusRepTrans;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.enumerated.TipoCarga;
+import com.ipn.mx.model.repository.CalificacionRepository;
 import com.ipn.mx.model.repository.CargaRepository;
 import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
+import com.ipn.mx.model.repository.TransportistaRepository;
+import com.ipn.mx.service.interfaces.JwtService;
+
+import io.jsonwebtoken.Claims;
 
 @RestController
-@RequestMapping("/representante")
+@RequestMapping("")
 public class OfertaController {
 	
 	@Autowired
@@ -46,17 +58,28 @@ public class OfertaController {
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
 	@Autowired
+	private TransportistaRepository transportistaRepository;
+	@Autowired
 	private CargaRepository cargaRepository;
 	@Autowired
+	private CalificacionRepository calificacionRepository;
+	@Autowired
 	private ControllerUtils controllerUtils;
+	@Autowired
+	private JwtService jwtService;
+	
+	private static EstatusOferta[] UPDATABLE_STATUS = 
+		{EstatusOferta.EMBARCANDO, EstatusOferta.EN_CAMINO, 
+			EstatusOferta.PROBLEMA, EstatusOferta.ENTREGADO};
 
-	@PostMapping("/cliente/oferta")
+	//RF10	Publicar ofertas de trabajo
+	@PostMapping("/representante/cliente/oferta")
 	public ResponseEntity<?> createOferta(@RequestBody(required = true) CreateOferta createOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
-				Oferta oferta = CreateOferta.toOferta(createOferta);
+				Oferta oferta = Oferta.toOferta(createOferta);
 				oferta.setRepresentanteCliente((RepresentanteCliente) u);
 				oferta.setEstatus(EstatusOferta.OFERTA);
 				if(oferta.getCargas() == null)
@@ -72,8 +95,10 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 
-	@GetMapping("/cliente/oferta")
-	public ResponseEntity<?> viewAllOfertasByRepresentante(@RequestParam(required = false) String idRepresentanteCliente){
+	//RF12	Gestionar ofertas
+	@GetMapping("/representante/cliente/oferta")
+	public ResponseEntity<?> viewAllOfertasByRepresentante(
+			@RequestParam(required = false, name = "idRepresentanteCliente") String idRepresentanteCliente){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
@@ -93,8 +118,30 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 		}
 	}
+	
+	//RF12	Gestionar ofertas
+	@GetMapping("/representante/cliente/oferta/{idOferta}")
+	public ResponseEntity<?> viewOfertaById(@PathVariable Integer idOferta){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
+			RepresentanteCliente rc;
+			try {
+				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				if (!controllerUtils.perteneceAlUsuario(u, o))
+					return ControllerUtils.unauthorisedResponse();
+				
+				return ControllerUtils.okResponse(OfertaDTO.ofertatoOfertaDTO(o));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
 
-	@DeleteMapping("/cliente/oferta/{idOferta}")
+	//RF12	Gestionar ofertas
+	@DeleteMapping("/representante/cliente/oferta/{idOferta}")
 	public ResponseEntity<?> deleteOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -116,9 +163,10 @@ public class OfertaController {
 		}
 	}
 	
+	//RF11	Postulación de empresas de autotransporte
 	//Si el usuario es administrador retorna todas las ofertas aun que no se pueda postular a ellas
-	@GetMapping("/transporte/oferta")
-	public ResponseEntity<?> viewAllOfertas(){
+	@GetMapping("/representante/transporte/oferta")
+	public ResponseEntity<?> viewAllOfertasPostulables(){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -143,6 +191,110 @@ public class OfertaController {
 		}
 	}
 	
+	//RF17	Realizar viaje
+	@GetMapping("/transportista/oferta")
+	public ResponseEntity<?> viewFromTransportista(@RequestBody String idTransportista){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			try {
+				if (u.getRol() == RolUsuario.ADMINISTRADOR)
+					u = transportistaRepository.findById(idTransportista).orElseThrow(() -> new NoSuchElementException());
+				Oferta o = ofertaRepository.findByIdTransportista(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
+				return ControllerUtils.okResponse(OfertaDTO.ofertatoOfertaDTO(o));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	//RF17	Realizar viaje
+	@PatchMapping("/transportista/oferta")
+	public ResponseEntity<?> updateEstatusFromTransportista(@RequestBody(required = false) UpdEstatus updEstatus){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			try {
+				Oferta o = ofertaRepository.findByIdTransportista(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
+				boolean update = verifyStatus(updEstatus);
+				if (!update || updEstatus == null)
+					throw new InvalidRequestExeption("Estatus no valido");
+				if (updEstatus.getEstatus() == EstatusOferta.EN_CAMINO) {
+					o.setEstatus(updEstatus.getEstatus());
+					o.setFechaInicio(LocalDate.now()); o.setHoraInicio(LocalTime.now());
+					ofertaRepository.save(o);
+					return ControllerUtils.okResponse();
+				} else {
+					ofertaRepository.updateEstatusOferta(o.getIdOferta(), updEstatus.getEstatus());
+					return ControllerUtils.okResponse();
+				}
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	//RF18	Finalizar viaje
+	@PatchMapping("/representante/cliente/oferta/finalizar")
+	public ResponseEntity<?> finalizarViaje(@RequestBody(required = true) CalificacionToken calificacionToken){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
+			try {
+				Claims c = jwtService.getAllClaims(calificacionToken.getToken());
+				Oferta oferta = ofertaRepository.findById(c.get("idOferta", Integer.class))
+						.orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				if (!oferta.getTokenViaje().equals(calificacionToken.getToken()) || !controllerUtils.perteneceAlUsuario(u, oferta)) {
+					return ControllerUtils.unauthorisedResponse();
+				}
+				oferta.setHoraTermino(LocalTime.now());
+				oferta.setFechaFin(LocalDate.now());
+				oferta.setEstatus(EstatusOferta.FINALIZADO);
+				ofertaRepository.save(oferta);
+				calificacionRepository.save(Calificacion.toCalificacion(calificacionToken));
+				return ControllerUtils.okResponse();
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	//RF18	Finalizar viaje
+	@PatchMapping("/representante/cliente/oferta/pagar/{idOferta}")
+	public ResponseEntity<?> pagarViaje(@PathVariable Integer idOferta){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
+			try {
+				Oferta oferta = ofertaRepository.findById(idOferta)
+						.orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				if (!controllerUtils.perteneceAlUsuario(u, oferta)) {
+					return ControllerUtils.unauthorisedResponse();
+				}
+				ofertaRepository.updateEstatusOferta(oferta.getIdOferta(), EstatusOferta.PAGADO);	
+				return ControllerUtils.okResponse();
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	private boolean verifyStatus(UpdEstatus updEstatus) {
+		boolean update = false;
+		for (EstatusOferta estatusOferta : UPDATABLE_STATUS) {
+			if (estatusOferta == updEstatus.getEstatus()) {
+				update = true;
+			}
+		}
+		return update;
+	}
+
 	private List<Carga> setTipoCarga(List<Carga> cargas) {
 		List<Carga> lc = new ArrayList<Carga>(); 
 		for (Carga carga : cargas) {

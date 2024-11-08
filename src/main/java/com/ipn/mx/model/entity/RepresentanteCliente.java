@@ -32,7 +32,7 @@ public class RepresentanteCliente extends Usuario {
 
 	@ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "empresaCliente", referencedColumnName = "razonSocial", 
-    			foreignKey = @ForeignKey(name = "fk_clienteRazonRC"))
+    			foreignKey = @ForeignKey(name = "fk_clienteRazonRC"), nullable = true)
 	private Empresa empresaCliente;
 	
 	@JsonIgnore

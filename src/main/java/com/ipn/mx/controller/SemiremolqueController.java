@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.SemirremolqueDTO;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Usuario;
@@ -39,6 +41,7 @@ public class SemiremolqueController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 	
+	//RF08	Gestionar semirremolques
 	@PostMapping("")
 	public ResponseEntity<?> crearSemirremolque(@RequestBody(required = true) Semirremolque semirremolque){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -57,8 +60,10 @@ public class SemiremolqueController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF08	Gestionar semirremolques
 	@GetMapping("")
-	public ResponseEntity<?> viewAllSemirremolques(@RequestBody(required = false) String idRepresentanteTrans){
+	public ResponseEntity<?> viewAllSemirremolques(
+			@RequestParam(required = false, name = "idRepresentanteTrans") String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Usuario u = (Usuario) auth.getPrincipal();
@@ -79,6 +84,28 @@ public class SemiremolqueController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF08	Gestionar semirremolques
+	@GetMapping("/{idSemirremolque}")
+	public ResponseEntity<?> viewSemirremolqueById(@PathVariable Integer idSemirremolque){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			Usuario u = (Usuario) auth.getPrincipal();
+			try {
+				Semirremolque s = semirremolqueRepository
+						.findById(idSemirremolque)
+						.orElseThrow(() -> new NoSuchElementException("Semirremolque no encontrdo"));
+				if (!controllerUtils.perteneceAlUsuario(u, s)) {
+					return ControllerUtils.unauthorisedResponse();
+				}
+				return ControllerUtils.okResponse(SemirremolqueDTO.toSemirremolqueDTO(s));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	//RF08	Gestionar semirremolques
 	@PutMapping("/{idSemirremolque}")
 	public ResponseEntity<?> updateSemirremolque(
 			@PathVariable Integer idSemirremolque, 

@@ -8,6 +8,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ipn.mx.model.dto.CreateOferta;
 import com.ipn.mx.model.enumerated.EstatusOferta;
 
 import jakarta.persistence.CascadeType;
@@ -47,19 +48,19 @@ public class Oferta implements Serializable {
     @Column(name = "descripcion", length = 250, nullable = true)
     private String descripcion;
 
-    @Column(name = "lugarInicio", length = 150, nullable = true)
+    @Column(name = "lugarInicio", length = 150, nullable = false)
     private String lugarInicio;
 
     @Column(name = "horaInicio", nullable = true)
     private LocalTime horaInicio;
 
-    @Column(name = "lugarDestino", length = 150, nullable = true)
+    @Column(name = "lugarDestino", length = 150, nullable = false)
     private String lugarDestino;
 
     @Column(name = "horaTermino", nullable = true)
     private LocalTime horaTermino;
 
-    @Column(name = "precio", precision = 10, scale = 2, nullable = true)
+    @Column(name = "precio", precision = 10, scale = 2, nullable = false)
     private BigDecimal precio;
 
     @Column(name = "fechaInicio", nullable = true)
@@ -78,6 +79,9 @@ public class Oferta implements Serializable {
     @Column(name = "pesoTotal", precision = 8, scale = 3, nullable = true)
     private BigDecimal pesoTotal;
     
+    @Column(name = "tokenViaje", length = 300, nullable = true)
+    private String tokenViaje;
+    
     @OneToMany(mappedBy = "oferta", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Carga> cargas;
     
@@ -90,6 +94,10 @@ public class Oferta implements Serializable {
     @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Postulacion> postulaciones;
     
+    @JsonIgnore
+    @OneToMany(mappedBy = "oferta", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Recurso> recursos;
+    
     @Column(name = "fechaCreacion", nullable = false)
     @JsonIgnore
     private LocalDateTime fechaCreacion;
@@ -97,5 +105,20 @@ public class Oferta implements Serializable {
     @PrePersist
     public void prePersist() {
     	this.fechaCreacion = LocalDateTime.now();
+    }
+    
+    public static Oferta toOferta(CreateOferta createOferta) {
+    	Oferta o = Oferta
+    			.builder()
+    			.descripcion(createOferta.getDescripcion())
+    			.lugarInicio(createOferta.getLugarInicio())
+    			.lugarDestino(createOferta.getLugarDestino())
+    			.precio(createOferta.getPrecio())
+    			.pesoTotal(createOferta.getPesoTotal())
+    			.cargas(createOferta.getCargas())
+    			.horaTermino(createOferta.getHoraTermino())
+    			.fechaFin(createOferta.getFechaFin())
+    			.build();
+    	return o;
     }
 }

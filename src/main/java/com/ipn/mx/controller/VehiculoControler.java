@@ -3,7 +3,6 @@ package com.ipn.mx.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,12 +15,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.dto.VehiculoDTO;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
-import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.entity.Vehiculo;
 import com.ipn.mx.model.enumerated.RolUsuario;
@@ -40,7 +40,10 @@ public class VehiculoControler {
 	private RepresentanteTransporteRepository rtr;
 	@Autowired 
 	private SedeRepository sedeRepository;
+	@Autowired 
+	private ControllerUtils controllerUtils;
 
+	// RF07	Gestionar vehículos
 	@PostMapping("")
 	public ResponseEntity<?> createVehiculo(@RequestBody(required = true) Vehiculo vehiculo) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -48,7 +51,7 @@ public class VehiculoControler {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
 				vehiculo = setTipoVehiculo(vehiculo);
-				if (perteneceAlUsuario(u, vehiculo.getSede()) && !vehiculoRepository.existsById(vehiculo.getPlaca())) {
+				if (controllerUtils.perteneceAlUsuario(u, vehiculo.getSede()) && !vehiculoRepository.existsById(vehiculo.getPlaca())) {
 					vehiculoRepository.save(vehiculo);
 					return ControllerUtils.createdResponse();
 				} else {
@@ -61,8 +64,28 @@ public class VehiculoControler {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	// RF07	Gestionar vehículos
+	@GetMapping("/{idVehiculo}")
+	public ResponseEntity<?> viewVehiculoById(@PathVariable String idVehiculo) {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			try {
+				Vehiculo v = vehiculoRepository.findById(idVehiculo).orElseThrow(() -> new NoSuchElementException("No se encontro el vehiculo"));
+				if (!controllerUtils.perteneceAlUsuario(u, v))
+					return ControllerUtils.unauthorisedResponse();
+				return ControllerUtils.okResponse(VehiculoDTO.toVehiculoDTO(v));
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	// RF07	Gestionar vehículos
 	@GetMapping("")
-	public ResponseEntity<?> viewAllVehiculos(@RequestBody(required = false) String idRepresentanteAutotransporte) {
+	public ResponseEntity<?> viewAllVehiculos(
+			@RequestParam(required = false, name = "idRepresentanteAutotransporte") String idRepresentanteAutotransporte) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -79,6 +102,7 @@ public class VehiculoControler {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	// RF07	Gestionar vehículos
 	@PutMapping("/{id}")
 	public ResponseEntity<?> updateVehiculo(
 			@PathVariable String id, 
@@ -89,7 +113,7 @@ public class VehiculoControler {
 			try {
 				vehiculo = setTipoVehiculo(vehiculo);
 				vehiculo.setPlaca(id);
-				if (perteneceAlUsuario(u, vehiculo)) {
+				if (controllerUtils.perteneceAlUsuario(u, vehiculo)) {
 					vehiculo.setPlaca(id);
 					vehiculo = getUpdateVehiculo(vehiculo);
 					vehiculoRepository.save(vehiculo);
@@ -104,6 +128,7 @@ public class VehiculoControler {
 		}
 	}
 	
+	// RF07	Gestionar vehículos
 	@DeleteMapping("/{id}")
 	public ResponseEntity<?> deleteVehiculo(@PathVariable String id) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -111,7 +136,7 @@ public class VehiculoControler {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			try {
 				Vehiculo vehiculo = vehiculoRepository.findById(id).orElse(null);
-				if (perteneceAlUsuario(u, vehiculo)) {
+				if (controllerUtils.perteneceAlUsuario(u, vehiculo)) {
 					vehiculoRepository.deleteById(vehiculo.getPlaca());
 					return ControllerUtils.okResponse();
 				} else 
@@ -122,33 +147,6 @@ public class VehiculoControler {
 		} else {
 			return ControllerUtils.unauthorisedResponse();
 		}
-	}
-	
-	private boolean perteneceAlUsuario(Usuario u, Sede sede){
-		if (sede == null) {
-			return false;
-		}
-		if (u.getRol() == RolUsuario.ADMINISTRADOR) {
-			RepresentanteTransporte rt = rtr.findById(u.getIdUsuario()).get();
-			Optional<SedeDTO> os = sedeRepository.findSedeByEmpresaAndId(sede.getIdSede(), rt.getEmpresaTransporte().getRazonSocial());
-			if(!os.isEmpty())
-				return true;
-			else
-				return false;
-		} else {
-			return true;
-		}
-	}
-	
-	private boolean perteneceAlUsuario(Usuario u, Vehiculo vehiculo){
-		if (vehiculo == null) {
-			return false;
-		}
-		Optional<Vehiculo> ov = vehiculoRepository.findById(vehiculo.getPlaca());
-		if(!ov.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
-			return perteneceAlUsuario(u, ov.get().getSede());
-		else
-			return true;
 	}
 	
 	private List<Vehiculo> findVehiculosByRepresentante(Usuario usuario) {

@@ -2,10 +2,14 @@ package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ipn.mx.model.dto.SemirremolqueDTO;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.TipoSemirremolque;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -16,6 +20,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -70,4 +75,32 @@ public class Semirremolque implements Serializable {
     @JoinColumn(name = "sedeId", referencedColumnName = "idSede", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idSedeSR"))
     private Sede sede;
+    
+    
+    @JsonIgnore
+    @OneToMany(mappedBy = "semirremolque", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Recurso> recursos;
+
+
+	public static Semirremolque toSemirremolque(SemirremolqueDTO dto) {
+		try {
+			Semirremolque s = Semirremolque
+					.builder()
+					.idSemirremolque(dto.getIdSemirremolque())
+	    			.nombreIdentificador(dto.getNombreIdentificador())
+	    			.estatus(dto.getEstatus())
+	    			.tipo(dto.getTipo())
+	    			.largo(dto.getLargo())
+	    			.ancho(dto.getAncho())
+	    			.alto(dto.getAlto())
+	    			.peso(dto.getPeso())
+	    			.noEjes(dto.getNoEjes())
+	    			.noLlantas(dto.getNoLlantas())
+	    			.sede(Sede.toSede(dto.getSede()))
+					.build();
+			return s;
+		} catch (Exception e) {
+			return null;
+		}
+	}
 }

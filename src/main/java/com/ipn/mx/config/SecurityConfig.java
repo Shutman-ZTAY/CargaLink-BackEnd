@@ -7,6 +7,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -26,12 +27,14 @@ public class SecurityConfig {
         return http
         	.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/auth/**", "/files/images/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sessionManagemer ->
             	sessionManagemer.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            .logout(logout -> logout.logoutUrl("/auth/logout")
+	            .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext()))
             .authenticationProvider(authProvider)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
             .build();

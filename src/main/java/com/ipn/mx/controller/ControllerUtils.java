@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.ipn.mx.model.dto.SedeDTO;
+import com.ipn.mx.model.entity.Empresa;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Postulacion;
 import com.ipn.mx.model.entity.RepresentanteCliente;
@@ -17,13 +18,18 @@ import com.ipn.mx.model.entity.Sede;
 import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
+import com.ipn.mx.model.entity.Vehiculo;
+import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.repository.OfertaRepository;
+import com.ipn.mx.model.repository.PostulacionRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
+import com.ipn.mx.model.repository.UsuarioRepository;
+import com.ipn.mx.model.repository.VehiculoRepository;
 
 @Service
 public class ControllerUtils {
@@ -40,6 +46,12 @@ public class ControllerUtils {
 	private SemirremolqueRepository semirremolqueRepository;
 	@Autowired
 	private TransportistaRepository transportistaRepository;
+	@Autowired
+	private VehiculoRepository vehiculoRepository;
+	@Autowired
+	private PostulacionRepository postulacionRepository;
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 	
 	public static ResponseEntity<?> exeptionsResponse(Exception e){
 		String messageError = "Error interno en el servidor: " + e.getMessage();
@@ -81,6 +93,24 @@ public class ControllerUtils {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mensaje);
 	}
 	
+	public boolean perteneceAlUsuario(Usuario u, Empresa empresa){
+		if (empresa == null) {
+			return false;
+		}
+		u = usuarioRepository.findById(u.getIdUsuario()).get();
+		if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE || u.getRol() == RolUsuario.REPRESENTANTE_CLIENTE) {
+			if (u instanceof RepresentanteTransporte) 
+				return ((RepresentanteTransporte) u).getEmpresaTransporte().equals(empresa);
+			else if (u instanceof RepresentanteCliente)
+				return ((RepresentanteCliente) u).getEmpresaCliente().equals(empresa);
+			else
+				return false;
+		} else if (u.getRol() == RolUsuario.ADMINISTRADOR)
+			return true;
+		else
+			return false;
+	}
+	
 	public boolean perteneceAlUsuario(Usuario u, Sede sede){
 		if (sede == null) {
 			return false;
@@ -111,12 +141,17 @@ public class ControllerUtils {
 				return false;
 		} else if (u.getRol() == RolUsuario.ADMINISTRADOR)
 			return true;
-		else
-			return false;
+		else {
+			boolean exist = postulacionRepository.existByOfertaAndRepresentanteTransporte(oferta.getIdOferta(), u.getIdUsuario());
+			if (exist && oferta.getEstatus() != EstatusOferta.OFERTA)
+				return true;
+			else
+				return false;
+		}
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Semirremolque semirremolque){
-		if (semirremolque == null) {
+		if (semirremolque == null || semirremolque.getIdSemirremolque() == null) {
 			return false;
 		}
 		Optional<Semirremolque> os = semirremolqueRepository.findById(semirremolque.getIdSemirremolque());
@@ -127,7 +162,7 @@ public class ControllerUtils {
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Transportista transportista){
-		if (transportista == null) {
+		if (transportista == null || transportista.getIdUsuario() == null) {
 			return false;
 		}
 		Optional<Transportista> ot = transportistaRepository.findById(transportista.getIdUsuario());
@@ -136,6 +171,17 @@ public class ControllerUtils {
 		else
 			return false;
 		
+	}
+	
+	public boolean perteneceAlUsuario(Usuario u, Vehiculo vehiculo){
+		if (vehiculo == null || vehiculo.getPlaca() == null) {
+			return false;
+		}
+		Optional<Vehiculo> ov = vehiculoRepository.findById(vehiculo.getPlaca());
+		if(!ov.isEmpty() || u.getRol() == RolUsuario.ADMINISTRADOR)
+			return perteneceAlUsuario(u, ov.get().getSede());
+		else
+			return true;
 	}
 
 	public boolean perteneceAlUsuario(Usuario usuario, Postulacion postulacion) {

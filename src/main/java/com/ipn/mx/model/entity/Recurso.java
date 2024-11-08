@@ -1,12 +1,9 @@
 package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
-import com.ipn.mx.model.enumerated.EstatusVehiculo;
-import com.ipn.mx.model.enumerated.TipoSemirremolque;
+import com.ipn.mx.model.dto.RecursoDTO;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
@@ -36,24 +33,35 @@ public class Recurso implements Serializable {
     @Column(name = "idRecurso", nullable = false)
     private Integer idRecurso;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "ofertaId", referencedColumnName = "idOferta", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idOfertaRS"))
     private Oferta oferta;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "vehiculoPlaca", referencedColumnName = "placa", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_placaRS"))
     private Vehiculo vehiculo;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "transportistaId", referencedColumnName = "usuarioId", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_usuarioIdRS"))
     private Transportista transportista;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "semirremolqueId", referencedColumnName = "idSemirremolque", nullable = true,
                 foreignKey = @ForeignKey(name = "fk_idSemirremolqueRS"))
     private Semirremolque semirremolque;
 
+    
+    public static Recurso toRecurso(RecursoDTO dto) {
+    	Recurso r = Recurso
+    			.builder()
+    			.idRecurso(dto.getIdRecurso())
+    			.vehiculo(Vehiculo.toVehiculo(dto.getVehiculo()))
+    			.transportista(Transportista.toTransportista(dto.getTransportista()))
+    			.semirremolque(Semirremolque.toSemirremolque(dto.getSemirremolque()))
+    			.build();
+    	return r;
+    }
 }

@@ -2,7 +2,7 @@ package com.ipn.mx.model.enumerated;
 
 public enum TipoEmbalaje {
 	BALA,
-	SECO,
+	SACO,
 	BOLSA,
 	PACA,
 	BALDES,

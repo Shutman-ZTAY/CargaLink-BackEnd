@@ -40,12 +40,20 @@ public interface TransportistaRepository extends JpaRepository<Transportista, St
 			@Param("sede") Integer sede
 			);
 
-
 	@Query("SELECT new com.ipn.mx.model.dto.TransportistaSeguro"
 			+ "(t.idUsuario, t.nombre, t.primerApellido, t.segundoApellido, "
 			+ "t.correo, t.telefono, t.rol, t.experiencia, t.categoria, "
 			+ "t.estatusTransportista, t.sede) "
 	         + "FROM Transportista t WHERE t.sede.idSede IN :sedes")
 	List<TransportistaSeguro> findAllTransportistasByAllSedes(@Param("sedes") List<Integer> sedes);
+
+	@Modifying
+	@Transactional
+	@Query("UPDATE Transportista t " +
+	       "SET t.estatusTransportista = :estatus " +
+	       "WHERE t.idUsuario = :idUsuario")
+	void updateEstatusTransportista(
+			@Param("idUsuario") String idUsuario, 
+			@Param("estatus") EstatusTransportista estatus);
 
 }
