@@ -57,7 +57,8 @@ public class SedeController {
 	
 	//RF09	Gestionar sedes
 	@GetMapping("")
-	public ResponseEntity<?> viewAllSedes(@RequestParam(required = false) String idRepresentanteTrans){
+	public ResponseEntity<?> viewAllSedes(
+			@RequestParam(required = false, name = "idRepresentanteTrans") String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {

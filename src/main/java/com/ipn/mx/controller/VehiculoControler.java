@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.SedeDTO;
@@ -83,7 +84,8 @@ public class VehiculoControler {
 	
 	// RF07	Gestionar vehículos
 	@GetMapping("")
-	public ResponseEntity<?> viewAllVehiculos(@RequestBody(required = false) String idRepresentanteAutotransporte) {
+	public ResponseEntity<?> viewAllVehiculos(
+			@RequestParam(required = false, name = "idRepresentanteAutotransporte") String idRepresentanteAutotransporte) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {

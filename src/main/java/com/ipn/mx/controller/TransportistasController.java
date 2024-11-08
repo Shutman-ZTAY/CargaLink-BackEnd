@@ -75,7 +75,8 @@ public class TransportistasController {
 
 	//RF06	Gestionar cuentas de transportistas
 	@GetMapping("/representante/transporte/transportista")
-	public ResponseEntity<?> viewAllTransportistasByRepresentante(@RequestParam(required = false) String idRepresentanteTrans){
+	public ResponseEntity<?> viewAllTransportistasByRepresentante(
+			@RequestParam(required = false, name = "idRepresentanteTrans") String idRepresentanteTrans){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
 			Usuario usr = (Usuario) auth.getPrincipal();

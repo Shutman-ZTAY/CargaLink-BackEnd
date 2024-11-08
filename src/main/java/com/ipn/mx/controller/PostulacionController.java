@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.PostulacionDTO;
@@ -64,7 +65,7 @@ public class PostulacionController {
 	//RF11	Postulación de empresas de autotransporte
 	@GetMapping("/transporte/postulacion")
 	public ResponseEntity<?> viewAllPostulacionByRepresentanteTransporte(
-			@RequestBody(required = false) String idRepresentanteTransporte){
+			@RequestParam(required = false, name = "idRepresentanteCliente") String idRepresentanteTransporte){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();

@@ -97,7 +97,8 @@ public class OfertaController {
 
 	//RF12	Gestionar ofertas
 	@GetMapping("/representante/cliente/oferta")
-	public ResponseEntity<?> viewAllOfertasByRepresentante(@RequestParam(required = false) String idRepresentanteCliente){
+	public ResponseEntity<?> viewAllOfertasByRepresentante(
+			@RequestParam(required = false, name = "idRepresentanteCliente") String idRepresentanteCliente){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
