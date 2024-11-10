@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ipn.mx.exeptions.RecursoInvalidoExeption;
 import com.ipn.mx.model.dto.ContratoRecurso;
@@ -32,6 +34,7 @@ import com.ipn.mx.model.repository.RecursoRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
 import com.ipn.mx.model.repository.VehiculoRepository;
+import com.ipn.mx.service.interfaces.FilesService;
 import com.ipn.mx.service.interfaces.JwtService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -56,12 +59,15 @@ public class RecursoController {
 	private SemirremolqueRepository semirremolqueRepository;
 	@Autowired
 	private JwtService jwtService;
+	@Autowired
+	private FilesService filesService;
 
 	//RF15	Asignar recursos
-	@PostMapping("/recurso/{idOferta}")
+	@PostMapping(value = "/recurso/{idOferta}", consumes = { "application/octet-stream" })
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
-			@RequestBody(required = true) ContratoRecurso contratoRecurso){
+			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
+			@RequestPart(name = "file", required = true) MultipartFile file){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
@@ -70,16 +76,18 @@ public class RecursoController {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
-				if (contratoRecurso.getContrato() == null)
+				if (file.isEmpty())
 					return ControllerUtils.badRequestResponse("Es necesario adjuntar un contrato");
 				
-				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
+				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
 				o.setRecursos(recursos);
 				String token = jwtService.generateTokenViaje(o);
 				
+				String filename = filesService.savePdf(file);
+				
 				recursoRepository.saveAll(recursos);
 				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
-				ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
+				ofertaRepository.updateContrato(idOferta, filename);
 				ofertaRepository.updateToken(idOferta, token);
 				
 				setEstatusRecursos(recursos, true);
@@ -116,10 +124,11 @@ public class RecursoController {
 	
 	//RF15	Asignar recursos
 	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
-	@PutMapping("/recurso/{idOferta}")
+	@PutMapping(value = "/recurso/{idOferta}", consumes = { "application/octet-stream" })
 	public ResponseEntity<?> updeteRecursos(
 			@PathVariable Integer idOferta,
-			@RequestBody(required = true) ContratoRecurso contratoRecurso){
+			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
+			@RequestPart(name = "file", required = false) MultipartFile file){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
@@ -129,7 +138,7 @@ public class RecursoController {
 				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
 				
-				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
+				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
 				o.setRecursos(recursos);
 				String token = jwtService.generateTokenViaje(o);
 				
@@ -140,9 +149,10 @@ public class RecursoController {
 				setEstatusRecursos(recursos, true);
 				ofertaRepository.updateToken(idOferta, token);
 				
-				if(contratoRecurso.getContrato() != null)
-					ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
-					
+				if(!file.isEmpty()) {
+					String filename = filesService.savePdf(file);
+					ofertaRepository.updateContrato(idOferta, filename);
+				}
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
