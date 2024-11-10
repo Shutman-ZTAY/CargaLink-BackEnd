@@ -100,7 +100,7 @@ public class RecursoController {
 
 	//RF15	Asignar recursos
 	// Obtiene todos los recursos asociados a una oferta
-	@GetMapping("/recurso/{idOferta}")
+	@GetMapping({"/transporte/recurso/{idOferta}", "/cliente/recurso/{idOferta}"})
 	public ResponseEntity<?> viewAllRecursoByOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();

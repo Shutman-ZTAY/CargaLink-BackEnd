@@ -120,11 +120,11 @@ public class OfertaController {
 	}
 	
 	//RF12	Gestionar ofertas
-	@GetMapping("/representante/cliente/oferta/{idOferta}")
+	@GetMapping(value = {"/representante/cliente/oferta/{idOferta}", "/representante/transporte/oferta/{idOferta}", "/transportista/oferta/{idOferta}"})
 	public ResponseEntity<?> viewOfertaById(@PathVariable Integer idOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE) || ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if (!controllerUtils.perteneceAlUsuario(u, o))
@@ -134,9 +134,7 @@ public class OfertaController {
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
-		} else {
-			return ControllerUtils.unauthorisedResponse();
-		}
+		
 	}
 
 	//RF12	Gestionar ofertas
