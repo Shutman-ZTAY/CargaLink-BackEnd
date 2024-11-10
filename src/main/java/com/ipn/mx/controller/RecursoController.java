@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ipn.mx.exeptions.RecursoInvalidoExeption;
-import com.ipn.mx.model.dto.ContratoRecurso;
 import com.ipn.mx.model.dto.RecursoDTO;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.Oferta;
