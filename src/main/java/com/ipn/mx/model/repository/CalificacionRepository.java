@@ -12,11 +12,10 @@ import com.ipn.mx.model.entity.Calificacion;
 public interface CalificacionRepository extends JpaRepository<Calificacion, Integer> {
 
 	@Query("SELECT new com.ipn.mx.model.dto.CalificacionDTO(c.idCalificacion, c.puntualidad, "
-			+ "c.estadoCarga, c.precio, c.atencion, c.comentario, c.clasificacionComentario, "
-			+ "c.intencidadComentario, c.promedio) "
-			+ "FROM Calificacion c "
-			+ "JOIN c.oferta.postulaciones p"
-			+ "WHERE p.representanteTransporte.idUsuario = :idRepresentanteTransporte")
+	        + "c.estadoCarga, c.precio, c.atencion, c.comentario, c.promedio) "
+	        + "FROM Calificacion c "
+	        + "JOIN c.oferta.postulaciones p "
+	        + "WHERE p.representanteTransporte.idUsuario = :idRepresentanteTransporte")
 	List<CalificacionDTO> findAllCalificacionesByRepTransporte(
 			@Param("idRepresentanteTransporte")String idRepresentanteTransporte);
 }
