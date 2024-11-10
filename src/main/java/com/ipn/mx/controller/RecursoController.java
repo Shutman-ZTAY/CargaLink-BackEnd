@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 
 @RestController
-@RequestMapping("/representante/transporte")
+@RequestMapping("/representante")
 public class RecursoController {
 	
 	@Autowired
@@ -62,7 +62,7 @@ public class RecursoController {
 	private FilesService filesService;
 
 	//RF15	Asignar recursos
-	@PostMapping(value = "/recurso/{idOferta}", consumes = { "application/octet-stream" })
+	@PostMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" })
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
@@ -105,7 +105,8 @@ public class RecursoController {
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || 
+				ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if(!controllerUtils.perteneceAlUsuario(u, o))
@@ -123,7 +124,7 @@ public class RecursoController {
 	
 	//RF15	Asignar recursos
 	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
-	@PutMapping(value = "/recurso/{idOferta}", consumes = { "application/octet-stream" })
+	@PutMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" })
 	public ResponseEntity<?> updeteRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
@@ -162,7 +163,7 @@ public class RecursoController {
 	
 	//RF15	Asignar recursos
 	// Elimina solamente un recurso de la base de datos
-	@DeleteMapping("/recurso/{idRecurso}")
+	@DeleteMapping("/transporte/recurso/{idRecurso}")
 	public ResponseEntity<?> deleteRecurso(@PathVariable Integer idRecurso){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
