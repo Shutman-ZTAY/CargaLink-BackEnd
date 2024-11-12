@@ -17,9 +17,11 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 
 	@Query("SELECT o FROM Oferta o WHERE o.representanteCliente.idUsuario = :idReprCliente")
 	List<Oferta> findAllOfertasByReprCliente(@Param("idReprCliente") String idReprCliente);
-
-	@Query("SELECT o FROM Oferta o WHERE o.representanteCliente.idUsuario = :idReprCliente AND o.idOferta = :idOferta")
-	Optional<Oferta> findOfertaByClienteAndId(
+	
+	@Query("SELECT CASE WHEN (COUNT(o) > 0) THEN TRUE ELSE FALSE END FROM Oferta o "
+			+ "WHERE o.representanteCliente.idUsuario = :idReprCliente "
+			+ "AND o.idOferta = :idOferta")
+	boolean existByClienteAndId(
 			@Param("idOferta") Integer idOferta,
 			@Param("idReprCliente")String idUsuario);
 	

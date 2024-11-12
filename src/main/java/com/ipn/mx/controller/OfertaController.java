@@ -127,6 +127,8 @@ public class OfertaController {
 		
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE ) 
+					return ControllerUtils.okResponse(OfertaDTO.ofertatoOfertaDTO(o));
 				if (!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
 				

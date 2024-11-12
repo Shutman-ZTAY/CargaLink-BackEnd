@@ -1,5 +1,6 @@
 package com.ipn.mx.controller;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -66,6 +67,7 @@ public class RecursoController {
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
+			@RequestPart(name = "precio", required = true) BigDecimal precio,
 			@RequestPart(name = "file", required = true) MultipartFile file){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -85,9 +87,8 @@ public class RecursoController {
 				String filename = filesService.savePdf(file);
 				
 				recursoRepository.saveAll(recursos);
-				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
-				ofertaRepository.updateContrato(idOferta, filename);
-				ofertaRepository.updateToken(idOferta, token);
+				o.setEstatus(EstatusOferta.RECOGIENDO); o.setContrato(filename); o.setTokenViaje(token); 
+				ofertaRepository.save(o);
 				
 				setEstatusRecursos(recursos, true);
 				return ControllerUtils.createdResponse();
