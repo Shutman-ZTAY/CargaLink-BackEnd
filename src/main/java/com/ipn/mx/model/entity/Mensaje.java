@@ -2,6 +2,9 @@ package com.ipn.mx.model.entity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import com.ipn.mx.model.dto.MensajeSeguro;
+import com.ipn.mx.model.dto.MessageDTO;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -47,4 +50,22 @@ public class Mensaje implements Serializable {
 
     @Column(name = "fecha", nullable = true, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fecha;
+    
+    public static Mensaje toMessage(MessageDTO message) {
+    	Mensaje m = Mensaje
+    			.builder()
+    			.chat(message.getChat())
+    			.contenido(message.getContenido())
+    			.build();
+    	return m;
+    }
+    public MensajeSeguro toMensajeSeguro() {
+    	return new MensajeSeguro(
+    			this.idMensaje,
+    			this.usuario.toUsuarioSeguroMensaje(),
+    			this.chat.getIdChat(),
+    			this.contenido,
+    			this.fecha
+    			);
+    }
 }

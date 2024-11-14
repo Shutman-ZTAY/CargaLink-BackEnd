@@ -8,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.ipn.mx.model.dto.UsuarioSeguro;
+import com.ipn.mx.model.dto.UsuarioSeguroMensaje;
 import com.ipn.mx.model.enumerated.RolUsuario;
 
 import jakarta.persistence.Column;
@@ -95,5 +97,38 @@ public class Usuario implements Serializable, UserDetails {
 	public String getUsername() {
 		return correo;
 	}
-
+	
+	public UsuarioSeguro toUsuarioSeguro() {
+		return new UsuarioSeguro(this.idUsuario,
+		this.nombre,
+		this.primerApellido,
+		this.segundoApellido,
+		this.correo,
+		this.telefono,
+		this.rol);
+	}
+	public UsuarioSeguroMensaje toUsuarioSeguroMensaje() {
+		UsuarioSeguroMensaje user = new UsuarioSeguroMensaje(
+				this.idUsuario,
+				this.nombre,
+				this.primerApellido,
+				this.segundoApellido,
+				this.correo,
+				this.telefono,
+				this.rol,
+				null,
+				null
+				);
+		if(this instanceof RepresentanteTransporte) {
+			user.setEmpresaTransporte(((RepresentanteTransporte) this).getEmpresaTransporte().toEmpresaTransporteSeguro()); 
+		}
+		else if (this instanceof RepresentanteCliente) {
+			user.setEmpresaCliente(((RepresentanteCliente) this).getEmpresaCliente());
+		}
+		else if(this instanceof Transportista) {
+			user.setEmpresaTransporte(((Transportista)this).getSede().getEmpresaTransporte().toEmpresaTransporteSeguro());
+		}
+		return user;
+	}
+	
 }

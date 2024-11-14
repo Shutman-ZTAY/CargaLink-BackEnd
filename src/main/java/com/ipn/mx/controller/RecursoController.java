@@ -63,7 +63,7 @@ public class RecursoController {
 	private FilesService filesService;
 
 	//RF15	Asignar recursos
-	@PostMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" })
+	@PostMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" , "multipart/form-data"})
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
