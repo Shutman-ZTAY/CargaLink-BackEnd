@@ -2,10 +2,13 @@ package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
 
+import com.ipn.mx.model.dto.EstatusRecurso;
 import com.ipn.mx.model.dto.RecursoDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -52,6 +55,10 @@ public class Recurso implements Serializable {
     @JoinColumn(name = "semirremolqueId", referencedColumnName = "idSemirremolque", nullable = true,
                 foreignKey = @ForeignKey(name = "fk_idSemirremolqueRS"))
     private Semirremolque semirremolque;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estatus", nullable = true)
+    private EstatusRecurso estatus;
 
     
     public static Recurso toRecurso(RecursoDTO dto) {
@@ -61,6 +68,7 @@ public class Recurso implements Serializable {
     			.vehiculo(Vehiculo.toVehiculo(dto.getVehiculo()))
     			.transportista(Transportista.toTransportista(dto.getTransportista()))
     			.semirremolque(Semirremolque.toSemirremolque(dto.getSemirremolque()))
+    			.estatus(dto.getEstatus())
     			.build();
     	return r;
     }
