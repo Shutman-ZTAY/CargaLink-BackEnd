@@ -41,7 +41,7 @@ public class Oferta implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idOferta", nullable = false)
     private Integer idOferta;
 
@@ -78,9 +78,6 @@ public class Oferta implements Serializable {
 
     @Column(name = "pesoTotal", precision = 8, scale = 3, nullable = true)
     private BigDecimal pesoTotal;
-    
-    @Column(name = "tokenViaje", length = 300, nullable = true)
-    private String tokenViaje;
     
     @OneToMany(mappedBy = "oferta", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Carga> cargas;
