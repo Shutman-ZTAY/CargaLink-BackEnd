@@ -2,6 +2,8 @@ package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
 
+import com.ipn.mx.model.dto.ChatSeguro;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -41,4 +43,12 @@ public class Chat implements Serializable {
     @JoinColumn(name = "usuario2Id", referencedColumnName = "idUsuario", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idUsuarioC2"))
     private Usuario usuario2;
+    
+    public ChatSeguro toChatSeguro() {
+    	return new ChatSeguro(
+    			this.idChat,
+    			this.usuario1.toUsuarioSeguroMensaje(),
+    			this.usuario2.toUsuarioSeguroMensaje()
+    			);
+    }
 }

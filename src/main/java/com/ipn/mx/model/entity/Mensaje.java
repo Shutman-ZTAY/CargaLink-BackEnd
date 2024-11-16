@@ -51,14 +51,7 @@ public class Mensaje implements Serializable {
     @Column(name = "fecha", nullable = true, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fecha;
     
-    public static Mensaje toMessage(MessageDTO message) {
-    	Mensaje m = Mensaje
-    			.builder()
-    			.chat(message.getChat())
-    			.contenido(message.getContenido())
-    			.build();
-    	return m;
-    }
+    
     public MensajeSeguro toMensajeSeguro() {
     	return new MensajeSeguro(
     			this.idMensaje,

@@ -34,7 +34,7 @@ public class SecurityConfig {
             	.and()
         	.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/**", "/files/images/**").permitAll()
+                .requestMatchers("/auth/**", "/files/images/**","/socket/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sessionManagemer ->

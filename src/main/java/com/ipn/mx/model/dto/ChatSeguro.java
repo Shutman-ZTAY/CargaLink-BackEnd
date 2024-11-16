@@ -1,6 +1,6 @@
 package com.ipn.mx.model.dto;
 
-import com.ipn.mx.model.entity.Usuario;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MessageDTO {
-	private String contenido;
-	private Usuario usuario;
+public class ChatSeguro {
+	private Integer idChat;
+	private UsuarioSeguroMensaje usuario1;
+	private UsuarioSeguroMensaje usuario2;
 }
