@@ -120,6 +120,7 @@ public class OfertaController {
 	}
 	
 	//RF12	Gestionar ofertas
+	//RF11	Postulación de empresas de autotransporte
 	@GetMapping(value = {"/representante/cliente/oferta/{idOferta}", "/representante/transporte/oferta/{idOferta}", "/transportista/oferta/{idOferta}"})
 	public ResponseEntity<?> viewOfertaById(@PathVariable Integer idOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -247,7 +248,7 @@ public class OfertaController {
 				Claims c = jwtService.getAllClaims(calificacionToken.getToken());
 				Oferta oferta = ofertaRepository.findById(c.get("idOferta", Integer.class))
 						.orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
-				if (!oferta.getTokenViaje().equals(calificacionToken.getToken()) || !controllerUtils.perteneceAlUsuario(u, oferta)) {
+				if (!controllerUtils.perteneceAlUsuario(u, oferta)) {
 					return ControllerUtils.unauthorisedResponse();
 				}
 				oferta.setHoraTermino(LocalTime.now());

@@ -99,18 +99,15 @@ public class JwtServiceImpl implements JwtService {
 	}
 	
 	@Override
-	public String generateTokenViaje(Oferta oferta) {
-		List<Recurso> lr = oferta.getRecursos();
-		List<RecursoDTO> recursos = new ArrayList<RecursoDTO>();
-		for (Recurso recurso : lr) {
-			recursos.add(RecursoDTO.toRecursoDTO(recurso));
-		}
+	public String generateTokenViaje(Oferta oferta) {	
 		HashMap<String, Object> claims = new HashMap<>();
-		claims.put("recursos", recursos);
+		claims.put("numRecursos", oferta.getRecursos().size());
 		claims.put("idOferta", oferta.getIdOferta());
+		claims.put("representanteCliente", oferta.getPostulaciones().get(0).getRepresentanteTransporte().getIdUsuario());
+		claims.put("representanteTransporte", oferta.getRepresentanteCliente().getIdUsuario());
+		
 		return Jwts.builder()
 				.claims(claims)
-				.subject(oferta.getRepresentanteCliente().getIdUsuario())
 				.issuedAt(new Date(System.currentTimeMillis()))
 				.signWith(getKey())
 				.compact();

@@ -1,6 +1,5 @@
 package com.ipn.mx.controller;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -12,13 +11,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ipn.mx.exeptions.RecursoInvalidoExeption;
+import com.ipn.mx.model.dto.EstatusRecurso;
+import com.ipn.mx.model.dto.PrecioDefinitivo;
 import com.ipn.mx.model.dto.RecursoDTO;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.Oferta;
@@ -35,7 +35,6 @@ import com.ipn.mx.model.repository.SemirremolqueRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
 import com.ipn.mx.model.repository.VehiculoRepository;
 import com.ipn.mx.service.interfaces.FilesService;
-import com.ipn.mx.service.interfaces.JwtService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,41 +57,43 @@ public class RecursoController {
 	@Autowired
 	private SemirremolqueRepository semirremolqueRepository;
 	@Autowired
-	private JwtService jwtService;
-	@Autowired
 	private FilesService filesService;
 
 	//RF15	Asignar recursos
 	@PostMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" , "multipart/form-data"})
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
-			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
-			@RequestPart(name = "precio", required = true) BigDecimal precio,
+			@RequestPart(name = "recursos",required = true) List<RecursoDTO> recursosDTO,
+			@RequestPart(required = true) PrecioDefinitivo precio,
 			@RequestPart(name = "file", required = true) MultipartFile file){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			String filename = null;
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
-				if (file.isEmpty())
+				if(o.getEstatus() != EstatusOferta.CONFIGURANDO)
+					return ControllerUtils.unauthorisedResponse();
+				if(file.isEmpty())
 					return ControllerUtils.badRequestResponse("Es necesario adjuntar un contrato");
 				
+				filename = filesService.savePdf(file);
+				
 				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
-				o.setRecursos(recursos);
-				String token = jwtService.generateTokenViaje(o);
+				o.getRecursos().clear(); o.getRecursos().addAll(recursos); o.setPrecio(precio.getPrecio());
+				o = ofertaRepository.save(o);
 				
-				String filename = filesService.savePdf(file);
-				
-				recursoRepository.saveAll(recursos);
-				o.setEstatus(EstatusOferta.RECOGIENDO); o.setContrato(filename); o.setTokenViaje(token); 
-				ofertaRepository.save(o);
+				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
+				ofertaRepository.updateContrato(idOferta, filename);
 				
 				setEstatusRecursos(recursos, true);
 				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
+				if(filename != null)
+					filesService.delete(filename);
 				return ControllerUtils.exeptionsResponse(e);
 			}
 		}else
@@ -134,28 +135,29 @@ public class RecursoController {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			String filename = null;
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
-				
-				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
-				o.setRecursos(recursos);
-				String token = jwtService.generateTokenViaje(o);
-				
-				recursoRepository.deleteByidOferta(idOferta);
-				setEstatusRecursos(o.getRecursos(), false);
-				
-				recursoRepository.saveAll(recursos);
-				setEstatusRecursos(recursos, true);
-				ofertaRepository.updateToken(idOferta, token);
-				
 				if(!file.isEmpty()) {
-					String filename = filesService.savePdf(file);
+					filesService.delete(o.getContrato());
+					filename = filesService.savePdf(file);
 					ofertaRepository.updateContrato(idOferta, filename);
 				}
+				
+				setEstatusRecursos(o.getRecursos(), false);
+				o.getRecursos().clear();
+				ofertaRepository.save(o);
+				
+				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
+				o.getRecursos().addAll(recursos);
+				setEstatusRecursos(recursos, true);
+				
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
+				if(filename != null)
+					filesService.delete(filename);
 				return ControllerUtils.exeptionsResponse(e);
 			}
 		}else
@@ -186,6 +188,7 @@ public class RecursoController {
 		}else
 			return ControllerUtils.unauthorisedResponse();
 	}
+	
 
 	private List<RecursoDTO> getRecursosDTO(List<Recurso> recursos) {
 		List<RecursoDTO> ldto = new ArrayList<RecursoDTO>();
@@ -226,7 +229,7 @@ public class RecursoController {
 				throw new RecursoInvalidoExeption("Transportista no valido para el recurso: " + c1 + c2 + c3 );
 			}
 			
-			recurso.setOferta(o);
+			recurso.setOferta(o); recurso.setEstatus(EstatusRecurso.EMBARCANDO);
 			lr.add(recurso);
 		}
 		return lr;

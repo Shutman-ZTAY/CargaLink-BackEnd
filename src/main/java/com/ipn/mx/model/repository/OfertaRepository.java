@@ -1,5 +1,6 @@
 package com.ipn.mx.model.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,10 +63,10 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	@Transactional
 	@Modifying
 	@Query("UPDATE Oferta o "
-			+ "SET o.tokenViaje = :token "
+			+ "SET o.precio = :precio "
 			+ "WHERE o.idOferta = :idOferta")
-	void updateToken(
+	void updatePrecio(
 			@Param("idOferta") Integer idOferta, 
-			@Param("token") String token);
+			@Param("precio") BigDecimal precio);
 	
 }

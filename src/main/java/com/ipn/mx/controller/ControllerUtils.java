@@ -19,11 +19,8 @@ import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.entity.Vehiculo;
-import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.repository.OfertaRepository;
-import com.ipn.mx.model.repository.PostulacionRepository;
-import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
@@ -39,8 +36,6 @@ public class ControllerUtils {
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
 	@Autowired
-	private RepresentanteClienteRepository rct;
-	@Autowired
 	private OfertaRepository ofertaRepository;
 	@Autowired
 	private SemirremolqueRepository semirremolqueRepository;
@@ -48,8 +43,6 @@ public class ControllerUtils {
 	private TransportistaRepository transportistaRepository;
 	@Autowired
 	private VehiculoRepository vehiculoRepository;
-	@Autowired
-	private PostulacionRepository postulacionRepository;
 	@Autowired
 	private UsuarioRepository usuarioRepository;
 	

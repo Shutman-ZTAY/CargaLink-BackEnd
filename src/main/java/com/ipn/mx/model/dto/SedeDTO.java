@@ -18,12 +18,16 @@ public class SedeDTO {
     private String direccion;
     
     public static SedeDTO toSedeDTO(Sede sede) {
-    	SedeDTO dto = SedeDTO
-    			.builder()
-    			.idSede(sede.getIdSede())
-    			.nombre(sede.getNombre())
-    			.direccion(sede.getDireccion())
-    			.build();
-    	return dto;
+    	try {
+        	SedeDTO dto = SedeDTO
+        			.builder()
+        			.idSede(sede.getIdSede())
+        			.nombre(sede.getNombre())
+        			.direccion(sede.getDireccion())
+        			.build();
+        	return dto;
+		} catch (Exception e) {
+			return null;
+		}
     }
 }
