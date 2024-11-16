@@ -3,6 +3,7 @@ package com.ipn.mx.model.entity;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ipn.mx.model.dto.EmpresaTransporteDTO;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,5 +33,14 @@ public class EmpresaAutotransporte extends Empresa{
 	@OneToMany(mappedBy = "empresaTransporte", cascade = CascadeType.ALL, orphanRemoval = true)
 	@JsonIgnore
 	private List<Sede> sedes;
-
+	
+	public EmpresaTransporteDTO toEmpresaTransporteSeguro() {
+		return new EmpresaTransporteDTO( 
+				this.getRazonSocial(),
+				this.getDescripcion(),
+				this.getNombreComercial(),
+				this.getRfc(),
+				this.getDireccion(),
+				this.getLogo());
+	}
 }
