@@ -1,5 +1,6 @@
 package com.ipn.mx.controller;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.exeptions.InvalidRequestExeption;
 import com.ipn.mx.model.dto.CreateOferta;
-import com.ipn.mx.model.dto.CalificacionToken;
 import com.ipn.mx.model.dto.OfertaDTO;
 import com.ipn.mx.model.dto.UpdEstatus;
 import com.ipn.mx.model.entity.Calificacion;
@@ -65,8 +65,6 @@ public class OfertaController {
 	private CalificacionRepository calificacionRepository;
 	@Autowired
 	private ControllerUtils controllerUtils;
-	@Autowired
-	private JwtService jwtService;
 	
 	private static EstatusOferta[] UPDATABLE_STATUS = 
 		{EstatusOferta.EMBARCANDO, EstatusOferta.EN_CAMINO, 
@@ -238,7 +236,7 @@ public class OfertaController {
 		}
 	}
 	
-	//RF18	Finalizar viaje
+	/*
 	@PatchMapping("/representante/cliente/oferta/finalizar")
 	public ResponseEntity<?> finalizarViaje(@RequestBody(required = true) CalificacionToken calificacionToken){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -262,11 +260,13 @@ public class OfertaController {
 			}
 		}else
 			return ControllerUtils.unauthorisedResponse();
-	}
+	}*/
 	
 	//RF18	Finalizar viaje
 	@PatchMapping("/representante/cliente/oferta/pagar/{idOferta}")
-	public ResponseEntity<?> pagarViaje(@PathVariable Integer idOferta){
+	public ResponseEntity<?> pagarCalificarOferta(
+			@PathVariable Integer idOferta,
+			@RequestBody Calificacion calificacion){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
@@ -276,7 +276,13 @@ public class OfertaController {
 				if (!controllerUtils.perteneceAlUsuario(u, oferta)) {
 					return ControllerUtils.unauthorisedResponse();
 				}
-				ofertaRepository.updateEstatusOferta(oferta.getIdOferta(), EstatusOferta.PAGADO);	
+				ofertaRepository.updateEstatusOferta(oferta.getIdOferta(), EstatusOferta.PAGADO);
+				calificacion.setOferta(oferta);
+				
+				// TODO hacer peticiones a la api de Google Sentiment Analyses
+				calificacion.setClasificacionComentario(BigDecimal.valueOf(0.41)); //Remplazar por los valores de la api
+				calificacion.setIntencidadComentario(BigDecimal.valueOf(0.41));	//Remplazar por los valores de la api
+				calificacionRepository.save(calificacion);
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
