@@ -43,9 +43,6 @@ import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
-import com.ipn.mx.service.interfaces.JwtService;
-
-import io.jsonwebtoken.Claims;
 
 @RestController
 @RequestMapping("")

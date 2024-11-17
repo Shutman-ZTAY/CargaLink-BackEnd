@@ -2,11 +2,16 @@ package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -43,4 +48,7 @@ public class Empresa implements Serializable {
     @Column(name = "logo", length = 60, nullable = true)
     private String logo;
 	
+    @JsonIgnore
+    @OneToOne(mappedBy = "empresa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private VectorEmpresa vectorEmpresa;
 }
