@@ -1,6 +1,7 @@
 package com.ipn.mx.model.dto;
 
 import com.ipn.mx.model.entity.Recurso;
+import com.ipn.mx.model.enumerated.EstatusRecurso;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

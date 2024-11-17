@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ipn.mx.exeptions.RecursoInvalidoExeption;
-import com.ipn.mx.model.dto.EstatusRecurso;
 import com.ipn.mx.model.dto.PrecioDefinitivo;
 import com.ipn.mx.model.dto.RecursoDTO;
 import com.ipn.mx.model.entity.CamionUnitario;
@@ -26,6 +25,7 @@ import com.ipn.mx.model.entity.Recurso;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 import com.ipn.mx.model.enumerated.EstatusOferta;
+import com.ipn.mx.model.enumerated.EstatusRecurso;
 import com.ipn.mx.model.enumerated.EstatusTransportista;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.RolUsuario;
@@ -189,6 +189,29 @@ public class RecursoController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF18	Finalizar viaje
+	//Finaliza el viaje de un solo recurso que llego al destino
+	@DeleteMapping("/cliente/recurso/{idRecurso}")
+	public ResponseEntity<?> finalizarViaje(@PathVariable Integer idRecurso){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			try {
+				Recurso r = recursoRepository.findById(idRecurso).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
+				if(!controllerUtils.perteneceAlUsuario(u, r.getOferta()))
+					return ControllerUtils.unauthorisedResponse();
+				boolean allFinalized = recursoRepository.areAllRecursosEntregados(idRecurso);
+				if (allFinalized)
+					ofertaRepository.updateEstatusOferta(r.getOferta().getIdOferta(), EstatusOferta.FINALIZADO);
+				r.setEstatus(EstatusRecurso.ENTREGADO);
+				recursoRepository.save(r);
+				return ControllerUtils.okResponse();
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
 
 	private List<RecursoDTO> getRecursosDTO(List<Recurso> recursos) {
 		List<RecursoDTO> ldto = new ArrayList<RecursoDTO>();
@@ -229,7 +252,7 @@ public class RecursoController {
 				throw new RecursoInvalidoExeption("Transportista no valido para el recurso: " + c1 + c2 + c3 );
 			}
 			
-			recurso.setOferta(o); recurso.setEstatus(EstatusRecurso.EMBARCANDO);
+			recurso.setOferta(o); recurso.setEstatus(EstatusRecurso.RECOGIENDO);
 			lr.add(recurso);
 		}
 		return lr;

@@ -2,8 +2,8 @@ package com.ipn.mx.model.entity;
 
 import java.io.Serializable;
 
-import com.ipn.mx.model.dto.EstatusRecurso;
 import com.ipn.mx.model.dto.RecursoDTO;
+import com.ipn.mx.model.enumerated.EstatusRecurso;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
