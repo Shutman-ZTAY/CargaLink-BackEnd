@@ -18,4 +18,15 @@ public interface CalificacionRepository extends JpaRepository<Calificacion, Inte
 	        + "WHERE p.representanteTransporte.idUsuario = :idRepresentanteTransporte")
 	List<CalificacionDTO> findAllCalificacionesByRepTransporte(
 			@Param("idRepresentanteTransporte")String idRepresentanteTransporte);
+	
+	@Query("SELECT COUNT(c) FROM Calificacion c WHERE "
+			+ "c.oferta.representanteCliente.idUsuario = :idUsuario "
+			+ "AND c.clasificacionComentario > 0.25")
+	Long countByRepresentanteCliente(@Param("idUsuario") String idUsuario);
+
+	@Query("SELECT COUNT(c) FROM Calificacion c "
+			+ "JOIN c.oferta.postulaciones p "
+			+ "WHERE p.representanteTransporte.idUsuario = :idRepresentanteTransporte")
+	Long countByRepresentanteTransporte(@Param("idRepresentanteTransporte") String idUsuario);
+
 }
