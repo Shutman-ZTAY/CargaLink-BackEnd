@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.ipn.mx.exeptions.RecursoInvalidoExeption;
 import com.ipn.mx.model.dto.PrecioDefinitivo;
 import com.ipn.mx.model.dto.RecursoDTO;
+import com.ipn.mx.model.dto.UpdEstatus;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Recurso;
@@ -38,10 +39,11 @@ import com.ipn.mx.service.interfaces.FilesService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 
 @RestController
-@RequestMapping("/representante")
+@RequestMapping("")
 public class RecursoController {
 	
 	@Autowired
@@ -60,7 +62,7 @@ public class RecursoController {
 	private FilesService filesService;
 
 	//RF15	Asignar recursos
-	@PostMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" , "multipart/form-data"})
+	@PostMapping(value = "/representante/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" , "multipart/form-data"})
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos",required = true) List<RecursoDTO> recursosDTO,
@@ -86,7 +88,7 @@ public class RecursoController {
 				o.getRecursos().clear(); o.getRecursos().addAll(recursos); o.setPrecio(precio.getPrecio());
 				o = ofertaRepository.save(o);
 				
-				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
+				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.CONFIGURADO);
 				ofertaRepository.updateContrato(idOferta, filename);
 				
 				setEstatusRecursos(recursos, true);
@@ -102,7 +104,7 @@ public class RecursoController {
 
 	//RF15	Asignar recursos
 	// Obtiene todos los recursos asociados a una oferta
-	@GetMapping({"/transporte/recurso/{idOferta}", "/cliente/recurso/{idOferta}"})
+	@GetMapping({"/representante/transporte/recurso/{idOferta}", "/cliente/recurso/{idOferta}"})
 	public ResponseEntity<?> viewAllRecursoByOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -126,7 +128,7 @@ public class RecursoController {
 	
 	//RF15	Asignar recursos
 	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
-	@PutMapping(value = "/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" })
+	@PutMapping(value = "/representante/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" })
 	public ResponseEntity<?> updeteRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
@@ -166,7 +168,7 @@ public class RecursoController {
 	
 	//RF15	Asignar recursos
 	// Elimina solamente un recurso de la base de datos
-	@DeleteMapping("/transporte/recurso/{idRecurso}")
+	@DeleteMapping("/representante/transporte/recurso/{idRecurso}")
 	public ResponseEntity<?> deleteRecurso(@PathVariable Integer idRecurso){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -189,10 +191,10 @@ public class RecursoController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
+	//RF17	Realizar viaje
 	//RF18	Finalizar viaje
-	//Finaliza el viaje de un solo recurso que llego al destino
-	@DeleteMapping("/cliente/recurso/{idRecurso}")
-	public ResponseEntity<?> finalizarViaje(@PathVariable Integer idRecurso){
+	@PatchMapping("/transportista/recurso/{idRecurso}")
+	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, UpdEstatus estatus){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
@@ -200,10 +202,12 @@ public class RecursoController {
 				Recurso r = recursoRepository.findById(idRecurso).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
 				if(!controllerUtils.perteneceAlUsuario(u, r.getOferta()))
 					return ControllerUtils.unauthorisedResponse();
-				boolean allFinalized = recursoRepository.areAllRecursosEntregados(idRecurso);
-				if (allFinalized)
-					ofertaRepository.updateEstatusOferta(r.getOferta().getIdOferta(), EstatusOferta.FINALIZADO);
-				r.setEstatus(EstatusRecurso.ENTREGADO);
+				if(estatus.getEstatus() == EstatusRecurso.ENTREGADO) {
+					boolean allFinalized = recursoRepository.areAllRecursosEntregados(idRecurso);
+					if (allFinalized)
+						ofertaRepository.updateEstatusOferta(r.getOferta().getIdOferta(), EstatusOferta.FINALIZADO);
+				}
+				r.setEstatus(estatus.getEstatus());
 				recursoRepository.save(r);
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
@@ -261,14 +265,17 @@ public class RecursoController {
 	private void setEstatusRecursos(List<Recurso> recursos, boolean enViaje) {
 		EstatusTransportista et;
 		EstatusVehiculo ev;
+		EstatusRecurso er = null;
 		if(enViaje) {
 			et = EstatusTransportista.EN_VIAJE;
 			ev = EstatusVehiculo.EN_VIAJE;
+			er = EstatusRecurso.RECOGIENDO;
 		} else {
 			et = EstatusTransportista.DISPONIBLE;
 			ev = EstatusVehiculo.DISPONIBLE;
 		}
 		for (Recurso recurso : recursos) {
+			recurso.setEstatus(er);
 			transportistaRepository.updateEstatusTransportista(
 						recurso.getTransportista().getIdUsuario(), et
 					);
@@ -279,6 +286,8 @@ public class RecursoController {
 				semirremolqueRepository.updateEstatusSemirremolque(
 							recurso.getSemirremolque().getIdSemirremolque(), ev
 					);
+			if(er != null && recurso.getIdRecurso() != null) 
+				recursoRepository.save(recurso);
 		}
 	}
 }

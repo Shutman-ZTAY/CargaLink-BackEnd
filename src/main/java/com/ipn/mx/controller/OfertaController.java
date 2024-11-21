@@ -65,10 +65,6 @@ public class OfertaController {
 	private ControllerUtils controllerUtils;
 	@Autowired
 	private VectorEmpresaService vectorEmpresaService;
-	
-	private static EstatusOferta[] UPDATABLE_STATUS = 
-		{EstatusOferta.EMBARCANDO, EstatusOferta.EN_CAMINO, 
-			EstatusOferta.PROBLEMA, EstatusOferta.ENTREGADO};
 
 	//RF10	Publicar ofertas de trabajo
 	@PostMapping("/representante/cliente/oferta")
@@ -191,7 +187,7 @@ public class OfertaController {
 	
 	//RF17	Realizar viaje
 	@GetMapping("/transportista/oferta")
-	public ResponseEntity<?> viewFromTransportista(@RequestBody String idTransportista){
+	public ResponseEntity<?> viewFromTransportista(@RequestParam(required = false) String idTransportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
@@ -207,60 +203,6 @@ public class OfertaController {
 			return ControllerUtils.unauthorisedResponse();
 		}
 	}
-	
-	//RF17	Realizar viaje
-	@PatchMapping("/transportista/oferta")
-	public ResponseEntity<?> updateEstatusFromTransportista(@RequestBody(required = false) UpdEstatus updEstatus){
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
-			try {
-				Oferta o = ofertaRepository.findByIdTransportista(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
-				boolean update = verifyStatus(updEstatus);
-				if (!update || updEstatus == null)
-					throw new InvalidRequestExeption("Estatus no valido");
-				if (updEstatus.getEstatus() == EstatusOferta.EN_CAMINO) {
-					o.setEstatus(updEstatus.getEstatus());
-					o.setFechaInicio(LocalDate.now()); o.setHoraInicio(LocalTime.now());
-					ofertaRepository.save(o);
-					return ControllerUtils.okResponse();
-				} else {
-					ofertaRepository.updateEstatusOferta(o.getIdOferta(), updEstatus.getEstatus());
-					return ControllerUtils.okResponse();
-				}
-			} catch (Exception e) {
-				return ControllerUtils.exeptionsResponse(e);
-			}
-		} else {
-			return ControllerUtils.unauthorisedResponse();
-		}
-	}
-	
-	/*
-	@PatchMapping("/representante/cliente/oferta/finalizar")
-	public ResponseEntity<?> finalizarViaje(@RequestBody(required = true) CalificacionToken calificacionToken){
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
-			try {
-				Claims c = jwtService.getAllClaims(calificacionToken.getToken());
-				Oferta oferta = ofertaRepository.findById(c.get("idOferta", Integer.class))
-						.orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
-				if (!controllerUtils.perteneceAlUsuario(u, oferta)) {
-					return ControllerUtils.unauthorisedResponse();
-				}
-				oferta.setHoraTermino(LocalTime.now());
-				oferta.setFechaFin(LocalDate.now());
-				oferta.setEstatus(EstatusOferta.FINALIZADO);
-				ofertaRepository.save(oferta);
-				calificacionRepository.save(Calificacion.toCalificacion(calificacionToken));
-				return ControllerUtils.okResponse();
-			} catch (Exception e) {
-				return ControllerUtils.exeptionsResponse(e);
-			}
-		}else
-			return ControllerUtils.unauthorisedResponse();
-	}*/
 	
 	//RF18	Finalizar viaje
 	@PatchMapping("/representante/cliente/oferta/pagar/{idOferta}")
@@ -290,16 +232,6 @@ public class OfertaController {
 			}
 		}else
 			return ControllerUtils.unauthorisedResponse();
-	}
-	
-	private boolean verifyStatus(UpdEstatus updEstatus) {
-		boolean update = false;
-		for (EstatusOferta estatusOferta : UPDATABLE_STATUS) {
-			if (estatusOferta == updEstatus.getEstatus()) {
-				update = true;
-			}
-		}
-		return update;
 	}
 
 	private List<Carga> setTipoCarga(List<Carga> cargas) {

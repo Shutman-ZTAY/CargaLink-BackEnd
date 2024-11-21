@@ -160,9 +160,10 @@ public class ControllerUtils {
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Transportista transportista){
-		if (transportista == null || transportista.getIdUsuario() == null) {
+		if (transportista == null || transportista.getIdUsuario() == null)
 			return false;
-		}
+		if (u.getIdUsuario() == transportista.getIdUsuario())
+			return true;
 		Optional<Transportista> ot = transportistaRepository.findById(transportista.getIdUsuario());
 		if(!ot.isEmpty())
 			return perteneceAlUsuario(u, ot.get().getSede());
