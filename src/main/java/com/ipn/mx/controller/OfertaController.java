@@ -1,8 +1,5 @@
 package com.ipn.mx.controller;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,10 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ipn.mx.exeptions.InvalidRequestExeption;
 import com.ipn.mx.model.dto.CreateOferta;
 import com.ipn.mx.model.dto.OfertaDTO;
-import com.ipn.mx.model.dto.UpdEstatus;
 import com.ipn.mx.model.entity.Calificacion;
 import com.ipn.mx.model.entity.Carga;
 import com.ipn.mx.model.entity.Contenedor;
@@ -66,6 +61,8 @@ public class OfertaController {
 	private ControllerUtils controllerUtils;
 	@Autowired
 	private VectorEmpresaService vectorEmpresaService;
+	@Autowired
+	private SentimentAnalysisService analysisService;
 
 	//RF10	Publicar ofertas de trabajo
 	@PostMapping("/representante/cliente/oferta")
@@ -205,8 +202,6 @@ public class OfertaController {
 		}
 	}
 	
-	@Autowired
-	private SentimentAnalysisService analysisService;
 	//RF18	Finalizar viaje
 	@PatchMapping("/representante/cliente/oferta/pagar/{idOferta}")
 	public ResponseEntity<?> pagarCalificarOferta(
