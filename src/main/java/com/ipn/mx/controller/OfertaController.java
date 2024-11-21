@@ -43,6 +43,7 @@ import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
+import com.ipn.mx.service.interfaces.SentimentAnalysisService;
 import com.ipn.mx.service.interfaces.VectorEmpresaService;
 
 @RestController
@@ -204,6 +205,8 @@ public class OfertaController {
 		}
 	}
 	
+	@Autowired
+	private SentimentAnalysisService analysisService;
 	//RF18	Finalizar viaje
 	@PatchMapping("/representante/cliente/oferta/pagar/{idOferta}")
 	public ResponseEntity<?> pagarCalificarOferta(
@@ -221,10 +224,8 @@ public class OfertaController {
 				ofertaRepository.updateEstatusOferta(oferta.getIdOferta(), EstatusOferta.PAGADO);
 				calificacion.setOferta(oferta);
 				
-				// TODO hacer peticiones a la api de Google Sentiment Analyses
-				calificacion.setClasificacionComentario(BigDecimal.valueOf(0.41)); //Remplazar por los valores de la api
-				calificacion.setIntencidadComentario(BigDecimal.valueOf(0.41));	//Remplazar por los valores de la api
-				vectorEmpresaService.changeAverge(calificacion);
+				calificacion = analysisService.setScores(calificacion); //TODO Hacer prueba unitaria de este servicio
+				vectorEmpresaService.changeAverge(calificacion);		//TODO Hacer prueba unitaria de este servicio
 				calificacionRepository.save(calificacion);
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
