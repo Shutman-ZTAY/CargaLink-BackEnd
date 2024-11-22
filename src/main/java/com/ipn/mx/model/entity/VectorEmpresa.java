@@ -52,16 +52,16 @@ public class VectorEmpresa implements Serializable {
 	@Column(name = "tipoEmpresa", nullable = false)
 	private TipoEmpresa tipoEmpresa;
 	
-	@Column(name = "puntualidad", nullable = false)
+	@Column(name = "puntualidad", precision = 10, scale = 5, nullable = false)
 	private BigDecimal puntualidad;
 
-    @Column(name = "estadoCarga", nullable = false)
+    @Column(name = "estadoCarga", precision = 10, scale = 5, nullable = false)
     private BigDecimal estadoCarga;
 
-    @Column(name = "precio", nullable = false)
+    @Column(name = "precio", precision = 10, scale = 5, nullable = false)
     private BigDecimal precio;
 
-    @Column(name = "atencion", nullable = false)
+    @Column(name = "atencion", precision = 10, scale = 5, nullable = false)
     private BigDecimal atencion;
     
     @Column(name = "clasificacionComentario", precision = 10, scale = 5, nullable = false)
