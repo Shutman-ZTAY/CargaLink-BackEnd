@@ -1,11 +1,15 @@
 package com.ipn.mx.service.implementation;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.ipn.mx.model.dto.PreferenciasEmpresas;
 import com.ipn.mx.model.entity.Calificacion;
+import com.ipn.mx.model.entity.Postulacion;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.VectorEmpresa;
@@ -47,6 +51,25 @@ public class VectorEmpresaServiceImpl implements VectorEmpresaService {
 			v = VectorEmpresa.promedioVectorEmpresa(v, newVec, calificacionRepository.countByRepresentanteTransporte(rt.getIdUsuario()));
 			vectorEmpresaRepository.save(v);
 		}
+	}
+
+	/**
+	 * Retorna null si el representante cliente aun no tiene establecido un vector de preferencias
+	 * */
+	@Override
+	public PreferenciasEmpresas getPreferenciasEmpresa(String idRepresentanteCliente, List<Postulacion> postulaciones) {
+		VectorEmpresa preferencias = vectorEmpresaRepository.findByRepresentanteCliente(idRepresentanteCliente).orElse(null);
+		if (preferencias == null)
+			return null;
+		List<Integer> idPostulaciones = new ArrayList<Integer>();
+		for (Postulacion postulacion : postulaciones) {
+			idPostulaciones.add(postulacion.getIdPostulacion());
+		}
+		List<VectorEmpresa> vecEmpresas =  vectorEmpresaRepository.findByPostulaciones(idPostulaciones);
+		return PreferenciasEmpresas.builder()
+				.preferencias(preferencias)
+				.empresas(vecEmpresas)
+				.build();
 	}
 
 }
