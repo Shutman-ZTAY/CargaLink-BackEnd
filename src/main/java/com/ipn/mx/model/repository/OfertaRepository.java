@@ -54,9 +54,7 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	@Query("SELECT o FROM Oferta o "
 			+ "JOIN o.recursos r "
 			+ "WHERE r.transportista.idUsuario = :idTransportista "
-			+ "AND (o.estatus = EstatusOferta.RECOGIENDO OR o.estatus = EstatusOferta.EMBARCANDO "
-			+ "OR o.estatus = EstatusOferta.EN_CAMINO OR o.estatus = EstatusOferta.PROBLEMA "
-			+ "OR o.estatus = EstatusOferta.ENTREGADO)")
+			+ "AND (o.estatus = EstatusOferta.CONFIGURADO)")
 	Optional<Oferta> findByIdTransportista(
 	        @Param("idTransportista") String idTransportista);
 
