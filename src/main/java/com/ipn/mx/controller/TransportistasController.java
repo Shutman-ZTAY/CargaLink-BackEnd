@@ -98,7 +98,7 @@ public class TransportistasController {
 	}
 	
 	//RF06	Gestionar cuentas de transportistas
-	@GetMapping(value = {"/representante/transporte/transportista/{idTransportista}", "transportista/profile/{idTransportista}"})
+	@GetMapping(value = {"/representante/transporte/transportista/{idTransportista}", "/transportista/profile/{idTransportista}"})
 	public ResponseEntity<?> viewTransportistasById(@PathVariable String idTransportista){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
