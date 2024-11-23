@@ -1,6 +1,8 @@
 package com.ipn.mx.model.repository;
 
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +25,12 @@ public interface RecursoRepository extends JpaRepository<Recurso, Integer> {
 	@Modifying
 	@Query("DELETE FROM Recurso r WHERE r.oferta.idOferta = :idOferta")
 	void deleteByidOferta(@Param("idOferta") Integer idOferta);
+
+	@Query("SELECT r FROM Recurso r "
+			+ "WHERE r.oferta.idOferta = :idOferta "
+			+ "AND r.transportista.idUsuario = :idUsuario")
+	Optional<Recurso> findByTransportistaAndOferta(
+			@Param("idUsuario") String idUsuario, 
+			@Param("idOferta") Integer idOferta);
 
 }

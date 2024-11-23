@@ -3,6 +3,7 @@ package com.ipn.mx.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -104,7 +105,7 @@ public class RecursoController {
 
 	//RF15	Asignar recursos
 	// Obtiene todos los recursos asociados a una oferta
-	@GetMapping({"/representante/transporte/recurso/{idOferta}", "/cliente/recurso/{idOferta}"})
+	@GetMapping({"/representante/transporte/recurso/{idOferta}", "/representante/cliente/recurso/{idOferta}"})
 	public ResponseEntity<?> viewAllRecursoByOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -119,6 +120,26 @@ public class RecursoController {
 				return ControllerUtils.okResponse(
 							getRecursosDTO(o.getRecursos())
 						);
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	// Obtiene los detalles del recurso al cual esta asignado el transportista
+	@GetMapping("/transportista/recurso/{idOferta}")
+	public ResponseEntity<?> viewRecursoFromTransportista(@PathVariable Integer idOferta){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			try {
+				Oferta o = Oferta.builder().idOferta(idOferta).build();
+				if(!controllerUtils.perteneceAlUsuario(u, o))
+					return ControllerUtils.unauthorisedResponse();
+				Recurso recurso = recursoRepository.findByTransportistaAndOferta(u.getIdUsuario(), idOferta)
+						.orElseThrow(() -> new NoSuchElementException("Recurso no existente"));
+				return ControllerUtils.okResponse(RecursoDTO.toRecursoDTO(recurso));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
