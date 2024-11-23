@@ -34,12 +34,12 @@ public class Chat implements Serializable {
     @Column(name = "idChat", nullable = false)
     private Integer idChat;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "usuario1Id", referencedColumnName = "idUsuario", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idUsuarioC1"))
     private Usuario usuario1;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "usuario2Id", referencedColumnName = "idUsuario", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idUsuarioC2"))
     private Usuario usuario2;
