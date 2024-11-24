@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -215,7 +216,7 @@ public class RecursoController {
 	//RF17	Realizar viaje
 	//RF18	Finalizar viaje
 	@PatchMapping("/transportista/recurso/{idRecurso}")
-	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, UpdEstatus estatus){
+	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, @RequestBody(required = true) UpdEstatus estatus){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
