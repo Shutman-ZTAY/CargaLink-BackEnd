@@ -1,6 +1,7 @@
 package com.ipn.mx.model.repository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
@@ -42,12 +43,20 @@ public class UsuarioRepositioryTest {
 	@Test
 	public void findByCorreoTestCaseFound() {
 		Optional<Usuario> ou = usuarioRepository.findUsuarioByCorreo("test@gmail.com");
-		assertEquals(ou.get().getIdUsuario(), "RFCTEST");
+		boolean found = false;
+		if (ou.get().getIdUsuario().equals("RFCTEST")) {
+			found = true;
+		}
+		assertTrue(found);
 	}
 	
 	@Test
 	public void findByCorreoTestCaseNotFound() {
 		Optional<Usuario> ou = usuarioRepository.findUsuarioByCorreo("prueba@gmail.com");
-		assertEquals(ou.orElse(null), null);
+		boolean found = false;
+		if (ou.orElse(null) != null) {
+			found = true;
+		}
+		assertFalse(found);
 	}
 }
