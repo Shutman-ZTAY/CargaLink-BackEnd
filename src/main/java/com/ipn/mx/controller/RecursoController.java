@@ -218,7 +218,7 @@ public class RecursoController {
 	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, UpdEstatus estatus){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
 			try {
 				Recurso r = recursoRepository.findById(idRecurso).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
 				if(!controllerUtils.perteneceAlUsuario(u, r.getOferta()))
