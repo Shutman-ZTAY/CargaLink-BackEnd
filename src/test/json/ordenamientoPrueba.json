@@ -1,0 +1,107 @@
+{
+    "preferencias": {
+        "idVector": null,
+        "empresa": {
+            "razonSocial": "Distribuidora F S.A. de C.V.",
+            "descripcion": "Empresa enfocada en la distribución de productos alimenticios.",
+            "nombreComercial": "Distribuidora F",
+            "rfc": "DIST8527413X5",
+            "direccion": "Calle Abasto 654, Ciudad Comercio, MX",
+            "logo": "https://example.com/logoF.png",
+            "vectorEmpresa": null
+        },
+        "tipoEmpresa": "CLIENTE",
+        "puntualidad": 4.8,
+        "estadoCarga": 3.0,
+        "precio": 4.1,
+        "atencion": 2.7,
+        "clasificacionComentario": 3.9
+    },
+    "empresas": [
+        {
+            "idVector": null,
+            "empresa": {
+                "razonSocial": "Empresa A S.A. de C.V.",
+                "descripcion": "Empresa dedicada al transporte de mercancías.",
+                "nombreComercial": "Transporte A",
+                "rfc": "EMPA1234567X9",
+                "direccion": "Calle Ficticia 123, Ciudad Ejemplo, MX",
+                "logo": "https://example.com/logoA.png"
+            },
+            "tipoEmpresa": "TRANSPORTE",
+            "puntualidad": 4.3,
+            "estadoCarga": 3.8,
+            "precio": 4.5,
+            "atencion": 4.9,
+            "clasificacionComentario": 2.1
+        },
+        {
+            "idVector": null,
+            "empresa": {
+                "razonSocial": "Logística B Global S.A.",
+                "descripcion": "Proveemos servicios logísticos a nivel global.",
+                "nombreComercial": "Logística B",
+                "rfc": "LOGB7654321X9",
+                "direccion": "Avenida Ejemplo 456, Ciudad Modelo, MX",
+                "logo": "https://example.com/logoB.png"
+            },
+            "tipoEmpresa": "TRANSPORTE",
+            "puntualidad": 2.7,
+            "estadoCarga": 3.4,
+            "precio": 1.9,
+            "atencion": 2.2,
+            "clasificacionComentario": 3.5
+        },
+        {
+            "idVector": null,
+            "empresa": {
+                "razonSocial": "Servicios C S.A. de C.V.",
+                "descripcion": "Empresa especializada en servicios de paquetería.",
+                "nombreComercial": "Paquetería C",
+                "rfc": "SEVC3216549X7",
+                "direccion": "Calle Central 789, Ciudad Ejemplo, MX",
+                "logo": "https://example.com/logoC.png"
+            },
+            "tipoEmpresa": "TRANSPORTE",
+            "puntualidad": 5.0,
+            "estadoCarga": 4.1,
+            "precio": 3.6,
+            "atencion": 4.0,
+            "clasificacionComentario": 4.8
+        },
+        {
+            "idVector": null,
+            "empresa": {
+                "razonSocial": "Carga D Express S.A.",
+                "descripcion": "Soluciones rápidas de transporte de carga.",
+                "nombreComercial": "Carga Express D",
+                "rfc": "CARX7418529X1",
+                "direccion": "Boulevard Rápido 321, Ciudad Progreso, MX",
+                "logo": "https://example.com/logoD.png"
+            },
+            "tipoEmpresa": "TRANSPORTE",
+            "puntualidad": 1.5,
+            "estadoCarga": 2.3,
+            "precio": 0.8,
+            "atencion": 1.2,
+            "clasificacionComentario": 1.7
+        },
+        {
+            "idVector": null,
+            "empresa": {
+                "razonSocial": "Entrega E S.A. de C.V.",
+                "descripcion": "Especialistas en entregas rápidas y seguras.",
+                "nombreComercial": "Entregas E",
+                "rfc": "ENTE9517532X3",
+                "direccion": "Avenida Rápida 567, Ciudad Avance, MX",
+                "logo": "https://example.com/logoE.png"
+            },
+            "tipoEmpresa": "TRANSPORTE",
+            "puntualidad": 3.3,
+            "estadoCarga": 4.6,
+            "precio": 2.4,
+            "atencion": 3.8,
+            "clasificacionComentario": 2.9
+        }
+    ]
+}
