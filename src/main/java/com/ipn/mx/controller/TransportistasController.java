@@ -23,12 +23,15 @@ import com.ipn.mx.model.dto.SedeDTO;
 import com.ipn.mx.model.dto.TransportistaSeguro;
 import com.ipn.mx.model.dto.UpdateTransportista;
 import com.ipn.mx.model.dto.UpdateTransportistaRepresentante;
+import com.ipn.mx.model.entity.Chat;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 import com.ipn.mx.model.enumerated.EstatusTransportista;
 import com.ipn.mx.model.enumerated.RolUsuario;
+import com.ipn.mx.model.repository.ChatRepository;
+import com.ipn.mx.model.repository.MensajeRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
@@ -47,6 +50,10 @@ public class TransportistasController {
 	private RepresentanteTransporteRepository rtr;
 	@Autowired
 	private ControllerUtils controllerUtils;
+	@Autowired
+	private ChatRepository chatRepository;
+	@Autowired
+	private MensajeRepository mensajeRepository;
 
 	//RF05	Crear cuentas para transportistas
 	@PostMapping("/representante/transporte/transportista")
@@ -160,6 +167,11 @@ public class TransportistasController {
 				Transportista t = tr.findById(id).orElseThrow(() -> new NoSuchElementException("Elemento no encontrado"));
 				if (!controllerUtils.perteneceAlUsuario((Usuario) auth.getPrincipal(), t))
 					return ControllerUtils.unauthorisedResponse();
+				List<Chat> chats = chatRepository.findByUsuario(t);
+				for(Chat chat: chats) {
+					mensajeRepository.deleteAll(mensajeRepository.findByChatOrderByFechaAsc(chat));
+					chatRepository.delete(chat);
+				}
 				tr.deleteById(id);
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
