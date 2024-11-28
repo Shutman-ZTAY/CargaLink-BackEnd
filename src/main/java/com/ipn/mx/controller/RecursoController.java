@@ -3,7 +3,6 @@ package com.ipn.mx.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -150,7 +149,7 @@ public class RecursoController {
 	
 	//RF15	Asignar recursos
 	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
-	@PutMapping(value = "/representante/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" , "multipart/form-data"})
+	@PutMapping(value = "/representante/transporte/recurso/{idOferta}", consumes = { "application/octet-stream", "multipart/form-data"})
 	public ResponseEntity<?> updeteRecursos(
 			@PathVariable Integer idOferta,
 			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
@@ -216,8 +215,7 @@ public class RecursoController {
 	//RF17	Realizar viaje
 	//RF18	Finalizar viaje
 	@PatchMapping("/transportista/recurso/{idRecurso}")
-	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, @RequestBody UpdEstatus estatus){
-		System.out.println(estatus);
+	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, @RequestBody(required = true) UpdEstatus estatus){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {

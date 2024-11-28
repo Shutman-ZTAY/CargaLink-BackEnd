@@ -33,7 +33,7 @@ public class SortApiServiceImpl implements SortApiService {
 		RestTemplate restTemplate = new RestTemplate();
 		ResponseEntity<List<String>> response = restTemplate.exchange(
 		    API_URL + "/reordenar",
-		    HttpMethod.GET,
+		    HttpMethod.POST,
 		    new HttpEntity<>(json, headers),
 		    new ParameterizedTypeReference<List<String>>() {}
 		);

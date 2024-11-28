@@ -51,9 +51,10 @@ public class TransportistasController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 	@Autowired
-	private MensajeRepository mensajeRepository;
-	@Autowired
 	private ChatRepository chatRepository;
+	@Autowired
+	private MensajeRepository mensajeRepository;
+
 
 	//RF05	Crear cuentas para transportistas
 	@PostMapping("/representante/transporte/transportista")

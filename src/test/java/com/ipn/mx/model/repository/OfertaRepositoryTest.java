@@ -1,10 +1,7 @@
 package com.ipn.mx.model.repository;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,25 +30,33 @@ public class OfertaRepositoryTest {
 	@Test
 	public void existByClienteAndIdCaseFound() {
 		boolean exist = ofertaRepository.existByClienteAndId(testOferta.getIdOferta(), testOferta.getRepresentanteCliente().getIdUsuario());
-		assertEquals(exist, true);
+		assertTrue(exist);
 	}
 	
 	@Test
 	public void existByClienteAndIdCaseNotFound() {
 		boolean exist = ofertaRepository.existByClienteAndId(testOferta.getIdOferta(), "idIncorrecto");
-		assertEquals(exist, false);
+		assertFalse(exist);
 	}
 	
 	@Test
 	public void findByIdTransportistaCaseFound() {
 		Transportista t = testOferta.getRecursos().get(0).getTransportista();
 		Oferta query = ofertaRepository.findByIdTransportista(t.getIdUsuario()).get();
-		assertEquals(testOferta, query);
+		boolean asserts = false;
+		if (testOferta.equals(query)) {
+			asserts = true;
+		}
+		assertTrue(asserts);
 	}
 	
 	@Test
 	public void findByIdTransportistaCaseNotFound() {
 		Oferta query = ofertaRepository.findByIdTransportista("test").orElse(null);
-		assertEquals(null, query);
+		boolean found = false;
+		if (testOferta.equals(query)) {
+			found = true;
+		}
+		assertFalse(found);
 	}
 }

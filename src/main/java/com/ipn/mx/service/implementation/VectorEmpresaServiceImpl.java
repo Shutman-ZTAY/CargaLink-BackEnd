@@ -54,7 +54,9 @@ public class VectorEmpresaServiceImpl implements VectorEmpresaService {
 	}
 
 	/**
-	 * Retorna null si el representante cliente aun no tiene establecido un vector de preferencias
+	 * Retorna null si: 
+	 * -El representante cliente aun no tiene establecido un vector de preferencias
+	 * -Las empresas de transporte aun no tienen un vector que describe sus servicios
 	 * */
 	@Override
 	public PreferenciasEmpresas getPreferenciasEmpresa(String idRepresentanteCliente, List<Postulacion> postulaciones) {
@@ -66,6 +68,9 @@ public class VectorEmpresaServiceImpl implements VectorEmpresaService {
 			idPostulaciones.add(postulacion.getIdPostulacion());
 		}
 		List<VectorEmpresa> vecEmpresas =  vectorEmpresaRepository.findByPostulaciones(idPostulaciones);
+		if (vecEmpresas.isEmpty()) 
+			return null;
+		
 		return PreferenciasEmpresas.builder()
 				.preferencias(preferencias)
 				.empresas(vecEmpresas)

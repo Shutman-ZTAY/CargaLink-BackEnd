@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import com.ipn.mx.model.dto.ChatSeguro;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
