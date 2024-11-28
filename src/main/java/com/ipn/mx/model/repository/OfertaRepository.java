@@ -1,5 +1,6 @@
 package com.ipn.mx.model.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,9 +18,11 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 
 	@Query("SELECT o FROM Oferta o WHERE o.representanteCliente.idUsuario = :idReprCliente")
 	List<Oferta> findAllOfertasByReprCliente(@Param("idReprCliente") String idReprCliente);
-
-	@Query("SELECT o FROM Oferta o WHERE o.representanteCliente.idUsuario = :idReprCliente AND o.idOferta = :idOferta")
-	Optional<Oferta> findOfertaByClienteAndId(
+	
+	@Query("SELECT CASE WHEN (COUNT(o) > 0) THEN TRUE ELSE FALSE END FROM Oferta o "
+			+ "WHERE o.representanteCliente.idUsuario = :idReprCliente "
+			+ "AND o.idOferta = :idOferta")
+	boolean existByClienteAndId(
 			@Param("idOferta") Integer idOferta,
 			@Param("idReprCliente")String idUsuario);
 	
@@ -51,19 +54,17 @@ public interface OfertaRepository extends JpaRepository<Oferta, Integer> {
 	@Query("SELECT o FROM Oferta o "
 			+ "JOIN o.recursos r "
 			+ "WHERE r.transportista.idUsuario = :idTransportista "
-			+ "AND (o.estatus = EstatusOferta.RECOGIENDO OR o.estatus = EstatusOferta.EMBARCANDO "
-			+ "OR o.estatus = EstatusOferta.EN_CAMINO OR o.estatus = EstatusOferta.PROBLEMA "
-			+ "OR o.estatus = EstatusOferta.ENTREGADO)")
+			+ "AND (o.estatus = EstatusOferta.CONFIGURADO)")
 	Optional<Oferta> findByIdTransportista(
 	        @Param("idTransportista") String idTransportista);
 
 	@Transactional
 	@Modifying
 	@Query("UPDATE Oferta o "
-			+ "SET o.tokenViaje = :token "
+			+ "SET o.precio = :precio "
 			+ "WHERE o.idOferta = :idOferta")
-	void updateToken(
+	void updatePrecio(
 			@Param("idOferta") Integer idOferta, 
-			@Param("token") String token);
+			@Param("precio") BigDecimal precio);
 	
 }

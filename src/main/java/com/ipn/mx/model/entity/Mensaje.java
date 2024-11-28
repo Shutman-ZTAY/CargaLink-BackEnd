@@ -2,7 +2,8 @@ package com.ipn.mx.model.entity;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import jakarta.persistence.CascadeType;
+import com.ipn.mx.model.dto.MensajeSeguro;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
@@ -32,12 +33,12 @@ public class Mensaje implements Serializable {
     @Column(name = "idMensaje", nullable = false)
     private Integer idMensaje;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "usuarioId", referencedColumnName = "idUsuario", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idUsuarioMS"))
     private Usuario usuario;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     @JoinColumn(name = "chatId", referencedColumnName = "idChat", nullable = false,
                 foreignKey = @ForeignKey(name = "fk_idChatMS"))
     private Chat chat;
@@ -47,4 +48,15 @@ public class Mensaje implements Serializable {
 
     @Column(name = "fecha", nullable = true, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime fecha;
+    
+    
+    public MensajeSeguro toMensajeSeguro() {
+    	return new MensajeSeguro(
+    			this.idMensaje,
+    			this.usuario.toUsuarioSeguroMensaje(),
+    			this.chat.getIdChat(),
+    			this.contenido,
+    			this.fecha
+    			);
+    }
 }

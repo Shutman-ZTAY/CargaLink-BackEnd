@@ -38,4 +38,18 @@ public interface PostulacionRepository extends JpaRepository<Postulacion, Intege
 			@Param("idOferta") Integer idOferta, 
 			@Param("idUsuario") String idUsuario);
 	
+	@Query("SELECT new com.ipn.mx.model.dto.PostulacionDTO(p.idPostulacion, p.oferta, p.representanteTransporte, p.precioPreeliminar) "
+			+ "FROM Postulacion p WHERE "
+			+ "p.representanteTransporte.empresaTransporte.razonSocial IN :ids")
+	List<PostulacionDTO> findAllByEmpresaTransporte(@Param("ids") List<String> razonesSociales);
+	
+	@Query("SELECT new com.ipn.mx.model.dto.PostulacionDTO(p.idPostulacion, p.oferta, p.representanteTransporte, p.precioPreeliminar) "
+			+ "FROM Postulacion p WHERE "
+			+ "p.representanteTransporte.empresaTransporte.razonSocial NOT IN :ids "
+			+ "AND "
+			+ "p.oferta.idOferta = :idOferta")
+	List<PostulacionDTO> findNotRecomended(
+			@Param("ids") List<String> razonesSociales, 
+			@Param("idOferta") Integer idOferta);
+	
 }

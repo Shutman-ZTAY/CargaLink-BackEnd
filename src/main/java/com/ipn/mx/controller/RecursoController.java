@@ -13,17 +13,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ipn.mx.exeptions.RecursoInvalidoExeption;
-import com.ipn.mx.model.dto.ContratoRecurso;
+import com.ipn.mx.model.dto.PrecioDefinitivo;
 import com.ipn.mx.model.dto.RecursoDTO;
+import com.ipn.mx.model.dto.UpdEstatus;
 import com.ipn.mx.model.entity.CamionUnitario;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Recurso;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.CategoriaTransportista;
 import com.ipn.mx.model.enumerated.EstatusOferta;
+import com.ipn.mx.model.enumerated.EstatusRecurso;
 import com.ipn.mx.model.enumerated.EstatusTransportista;
 import com.ipn.mx.model.enumerated.EstatusVehiculo;
 import com.ipn.mx.model.enumerated.RolUsuario;
@@ -32,14 +36,15 @@ import com.ipn.mx.model.repository.RecursoRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
 import com.ipn.mx.model.repository.TransportistaRepository;
 import com.ipn.mx.model.repository.VehiculoRepository;
-import com.ipn.mx.service.interfaces.JwtService;
+import com.ipn.mx.service.interfaces.FilesService;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 
 @RestController
-@RequestMapping("/representante/transporte")
+@RequestMapping("")
 public class RecursoController {
 	
 	@Autowired
@@ -55,36 +60,43 @@ public class RecursoController {
 	@Autowired
 	private SemirremolqueRepository semirremolqueRepository;
 	@Autowired
-	private JwtService jwtService;
+	private FilesService filesService;
 
 	//RF15	Asignar recursos
-	@PostMapping("/recurso/{idOferta}")
+	@PostMapping(value = "/representante/transporte/recurso/{idOferta}", consumes = { "application/octet-stream" , "multipart/form-data"})
 	public ResponseEntity<?> createRecursos(
 			@PathVariable Integer idOferta,
-			@RequestBody(required = true) ContratoRecurso contratoRecurso){
+			@RequestPart(name = "recursos",required = true) List<RecursoDTO> recursosDTO,
+			@RequestPart(required = true) PrecioDefinitivo precio,
+			@RequestPart(name = "file", required = true) MultipartFile file){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			String filename = null;
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
-				if (contratoRecurso.getContrato() == null)
+				if(o.getEstatus() != EstatusOferta.CONFIGURANDO)
+					return ControllerUtils.unauthorisedResponse();
+				if(file.isEmpty())
 					return ControllerUtils.badRequestResponse("Es necesario adjuntar un contrato");
 				
-				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
-				o.setRecursos(recursos);
-				String token = jwtService.generateTokenViaje(o);
+				filename = filesService.savePdf(file);
 				
-				recursoRepository.saveAll(recursos);
-				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.RECOGIENDO);
-				ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
-				ofertaRepository.updateToken(idOferta, token);
+				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
+				o.getRecursos().clear(); o.getRecursos().addAll(recursos); o.setPrecio(precio.getPrecio());
+				o = ofertaRepository.save(o);
+				
+				ofertaRepository.updateEstatusOferta(idOferta, EstatusOferta.CONFIGURADO);
+				ofertaRepository.updateContrato(idOferta, filename);
 				
 				setEstatusRecursos(recursos, true);
 				return ControllerUtils.createdResponse();
 			} catch (Exception e) {
+				if(filename != null)
+					filesService.delete(filename);
 				return ControllerUtils.exeptionsResponse(e);
 			}
 		}else
@@ -93,12 +105,13 @@ public class RecursoController {
 
 	//RF15	Asignar recursos
 	// Obtiene todos los recursos asociados a una oferta
-	@GetMapping("/recurso/{idOferta}")
+	@GetMapping({"/representante/transporte/recurso/{idOferta}", "/representante/cliente/recurso/{idOferta}"})
 	public ResponseEntity<?> viewAllRecursoByOferta(@PathVariable Integer idOferta){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || 
+				ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
 				if(!controllerUtils.perteneceAlUsuario(u, o))
@@ -114,36 +127,19 @@ public class RecursoController {
 			return ControllerUtils.unauthorisedResponse();
 	}
 	
-	//RF15	Asignar recursos
-	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
-	@PutMapping("/recurso/{idOferta}")
-	public ResponseEntity<?> updeteRecursos(
-			@PathVariable Integer idOferta,
-			@RequestBody(required = true) ContratoRecurso contratoRecurso){
-		
+	// Obtiene los detalles del recurso al cual esta asignado el transportista
+	@GetMapping("/transportista/recurso/{idOferta}")
+	public ResponseEntity<?> viewRecursoFromTransportista(@PathVariable Integer idOferta){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		Usuario u = (Usuario) auth.getPrincipal();
-		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
 			try {
-				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				Oferta o = Oferta.builder().idOferta(idOferta).build();
 				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
-				
-				List<Recurso> recursos = verifyRecursos(contratoRecurso.getRecursos(), o);
-				o.setRecursos(recursos);
-				String token = jwtService.generateTokenViaje(o);
-				
-				recursoRepository.deleteByidOferta(idOferta);
-				setEstatusRecursos(o.getRecursos(), false);
-				
-				recursoRepository.saveAll(recursos);
-				setEstatusRecursos(recursos, true);
-				ofertaRepository.updateToken(idOferta, token);
-				
-				if(contratoRecurso.getContrato() != null)
-					ofertaRepository.updateContrato(idOferta, contratoRecurso.getContrato());
-					
-				return ControllerUtils.okResponse();
+				Recurso recurso = recursoRepository.findByTransportistaAndOferta(u.getIdUsuario(), idOferta)
+						.orElseThrow(() -> new NoSuchElementException("Recurso no existente"));
+				return ControllerUtils.okResponse(RecursoDTO.toRecursoDTO(recurso));
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}
@@ -152,8 +148,48 @@ public class RecursoController {
 	}
 	
 	//RF15	Asignar recursos
+	// Borra los recursos que se tenian en la oferta y pone otros que proporciona el representante de transporte
+	@PutMapping(value = "/representante/transporte/recurso/{idOferta}", consumes = { "application/octet-stream", "multipart/form-data"})
+	public ResponseEntity<?> updeteRecursos(
+			@PathVariable Integer idOferta,
+			@RequestPart(name = "recursos", required = true) List<RecursoDTO> recursosDTO,
+			@RequestPart(name = "file", required = false) MultipartFile file){
+		
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE)) {
+			String filename = null;
+			try {
+				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Oferta no encontrada"));
+				if(!controllerUtils.perteneceAlUsuario(u, o))
+					return ControllerUtils.unauthorisedResponse();
+				if(!file.isEmpty()) {
+					filesService.delete(o.getContrato());
+					filename = filesService.savePdf(file);
+					ofertaRepository.updateContrato(idOferta, filename);
+				}
+				
+				setEstatusRecursos(o.getRecursos(), false);
+				o.getRecursos().clear();
+				ofertaRepository.save(o);
+				
+				List<Recurso> recursos = verifyRecursos(recursosDTO, o);
+				o.getRecursos().addAll(recursos);
+				setEstatusRecursos(recursos, true);
+				
+				return ControllerUtils.okResponse();
+			} catch (Exception e) {
+				if(filename != null)
+					filesService.delete(filename);
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	//RF15	Asignar recursos
 	// Elimina solamente un recurso de la base de datos
-	@DeleteMapping("/recurso/{idRecurso}")
+	@DeleteMapping("/representante/transporte/recurso/{idRecurso}")
 	public ResponseEntity<?> deleteRecurso(@PathVariable Integer idRecurso){
 		
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -168,6 +204,32 @@ public class RecursoController {
 				List<Recurso> lr = new ArrayList<Recurso>(); lr.add(r);
 				setEstatusRecursos(lr, false);
 				
+				return ControllerUtils.okResponse();
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	//RF17	Realizar viaje
+	//RF18	Finalizar viaje
+	@PatchMapping("/transportista/recurso/{idRecurso}")
+	public ResponseEntity<?> changeStatus(@PathVariable Integer idRecurso, @RequestBody(required = true) UpdEstatus estatus){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		Usuario u = (Usuario) auth.getPrincipal();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_TRANSPORTE) || ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			try {
+				Recurso r = recursoRepository.findById(idRecurso).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
+				if(!controllerUtils.perteneceAlUsuario(u, r.getOferta()))
+					return ControllerUtils.unauthorisedResponse();
+				if(estatus.getEstatus() == EstatusRecurso.ENTREGADO) {
+					boolean allFinalized = recursoRepository.areAllRecursosEntregados(idRecurso);
+					if (allFinalized)
+						ofertaRepository.updateEstatusOferta(r.getOferta().getIdOferta(), EstatusOferta.FINALIZADO);
+				}
+				r.setEstatus(estatus.getEstatus());
+				recursoRepository.save(r);
 				return ControllerUtils.okResponse();
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
@@ -215,7 +277,7 @@ public class RecursoController {
 				throw new RecursoInvalidoExeption("Transportista no valido para el recurso: " + c1 + c2 + c3 );
 			}
 			
-			recurso.setOferta(o);
+			recurso.setOferta(o); recurso.setEstatus(EstatusRecurso.RECOGIENDO);
 			lr.add(recurso);
 		}
 		return lr;
@@ -224,14 +286,17 @@ public class RecursoController {
 	private void setEstatusRecursos(List<Recurso> recursos, boolean enViaje) {
 		EstatusTransportista et;
 		EstatusVehiculo ev;
+		EstatusRecurso er = null;
 		if(enViaje) {
 			et = EstatusTransportista.EN_VIAJE;
 			ev = EstatusVehiculo.EN_VIAJE;
+			er = EstatusRecurso.RECOGIENDO;
 		} else {
 			et = EstatusTransportista.DISPONIBLE;
 			ev = EstatusVehiculo.DISPONIBLE;
 		}
 		for (Recurso recurso : recursos) {
+			recurso.setEstatus(er);
 			transportistaRepository.updateEstatusTransportista(
 						recurso.getTransportista().getIdUsuario(), et
 					);
@@ -242,6 +307,8 @@ public class RecursoController {
 				semirremolqueRepository.updateEstatusSemirremolque(
 							recurso.getSemirremolque().getIdSemirremolque(), ev
 					);
+			if(er != null && recurso.getIdRecurso() != null) 
+				recursoRepository.save(recurso);
 		}
 	}
 }

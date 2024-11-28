@@ -19,11 +19,8 @@ import com.ipn.mx.model.entity.Semirremolque;
 import com.ipn.mx.model.entity.Transportista;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.entity.Vehiculo;
-import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.repository.OfertaRepository;
-import com.ipn.mx.model.repository.PostulacionRepository;
-import com.ipn.mx.model.repository.RepresentanteClienteRepository;
 import com.ipn.mx.model.repository.RepresentanteTransporteRepository;
 import com.ipn.mx.model.repository.SedeRepository;
 import com.ipn.mx.model.repository.SemirremolqueRepository;
@@ -39,8 +36,6 @@ public class ControllerUtils {
 	@Autowired
 	private RepresentanteTransporteRepository rtr;
 	@Autowired
-	private RepresentanteClienteRepository rct;
-	@Autowired
 	private OfertaRepository ofertaRepository;
 	@Autowired
 	private SemirremolqueRepository semirremolqueRepository;
@@ -48,8 +43,6 @@ public class ControllerUtils {
 	private TransportistaRepository transportistaRepository;
 	@Autowired
 	private VehiculoRepository vehiculoRepository;
-	@Autowired
-	private PostulacionRepository postulacionRepository;
 	@Autowired
 	private UsuarioRepository usuarioRepository;
 	
@@ -133,17 +126,22 @@ public class ControllerUtils {
 			return false;
 		}
 		if (u.getRol() == RolUsuario.REPRESENTANTE_CLIENTE) {
-			RepresentanteCliente rt = rct.findById(u.getIdUsuario()).get();
-			Optional<Oferta> oo = ofertaRepository.findOfertaByClienteAndId(oferta.getIdOferta(), rt.getIdUsuario());
-			if(!oo.isEmpty())
+			boolean exist = ofertaRepository.existByClienteAndId(oferta.getIdOferta(), u.getIdUsuario());
+			if(exist)
 				return true;
 			else
 				return false;
 		} else if (u.getRol() == RolUsuario.ADMINISTRADOR)
 			return true;
-		else {
-			boolean exist = postulacionRepository.existByOfertaAndRepresentanteTransporte(oferta.getIdOferta(), u.getIdUsuario());
-			if (exist && oferta.getEstatus() != EstatusOferta.OFERTA)
+		else if (u.getRol() == RolUsuario.REPRESENTANTE_TRANSPORTE) {
+			boolean exist = rtr.existByOferta(oferta.getIdOferta());
+			if (exist)
+				return true;
+			else
+				return false;
+		} else {
+			boolean exist = transportistaRepository.existByOferta(oferta.getIdOferta(), u.getIdUsuario());
+			if (exist)
 				return true;
 			else
 				return false;
@@ -162,9 +160,10 @@ public class ControllerUtils {
 	}
 	
 	public boolean perteneceAlUsuario(Usuario u, Transportista transportista){
-		if (transportista == null || transportista.getIdUsuario() == null) {
+		if (transportista == null || transportista.getIdUsuario() == null)
 			return false;
-		}
+		if (u.getIdUsuario().equals(transportista.getIdUsuario()))
+			return true;
 		Optional<Transportista> ot = transportistaRepository.findById(transportista.getIdUsuario());
 		if(!ot.isEmpty())
 			return perteneceAlUsuario(u, ot.get().getSede());

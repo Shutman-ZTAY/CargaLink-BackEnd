@@ -3,8 +3,6 @@ package com.ipn.mx.model.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import com.ipn.mx.model.dto.CalificacionToken;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,8 +48,8 @@ public class Calificacion implements Serializable {
     @Column(name = "comentario", length = 250, nullable = true)
     private String comentario;
     
-    @Column(name = "clasificacionComentario", nullable = true)
-    private Integer clasificacionComentario;
+    @Column(name = "clasificacionComentario", precision = 2, scale = 1, nullable = true)
+    private BigDecimal clasificacionComentario;
     
     @Column(name = "intencidadComentario", precision = 2, scale = 1, nullable = true)
     private BigDecimal intencidadComentario;
@@ -63,18 +61,4 @@ public class Calificacion implements Serializable {
     @JoinColumn(name = "ofertaId", referencedColumnName = "idOferta", nullable = false, 
                 foreignKey = @ForeignKey(name = "fk_ofertaIdC"))
     private Oferta oferta;
-    
-
-    public static Calificacion toCalificacion(CalificacionToken calificacionToken) {
-    	BigDecimal promedio  = new BigDecimal((calificacionToken.getEstadoCarga() + calificacionToken.getEstadoCarga() + calificacionToken.getPrecio() + calificacionToken.getAtencion()));
-    	promedio = promedio.divide(BigDecimal.valueOf(4));
-    	return Calificacion.builder()
-    			.puntualidad(calificacionToken.getPuntualidad())
-    			.estadoCarga(calificacionToken.getEstadoCarga())
-    			.precio(calificacionToken.getPrecio())
-    			.atencion(calificacionToken.getAtencion())
-    			.comentario(calificacionToken.getComentario())
-    			.promedio(promedio)
-    			.build();
-    }
 }

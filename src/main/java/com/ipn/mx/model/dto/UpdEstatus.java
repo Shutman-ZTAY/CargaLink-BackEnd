@@ -1,6 +1,7 @@
 package com.ipn.mx.model.dto;
 
 import com.ipn.mx.model.enumerated.EstatusOferta;
+import com.ipn.mx.model.enumerated.EstatusRecurso;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +14,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UpdEstatus {
 
-	private EstatusOferta estatus;
+	private EstatusRecurso estatus;
 	
 }

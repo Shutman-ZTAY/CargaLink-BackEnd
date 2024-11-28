@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.PostulacionDTO;
+import com.ipn.mx.model.dto.PreferenciasEmpresas;
 import com.ipn.mx.model.entity.Oferta;
 import com.ipn.mx.model.entity.Postulacion;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
@@ -27,6 +28,8 @@ import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.PostulacionRepository;
+import com.ipn.mx.service.interfaces.SortApiService;
+import com.ipn.mx.service.interfaces.VectorEmpresaService;
 
 @RestController
 @RequestMapping("/representante")
@@ -38,6 +41,10 @@ public class PostulacionController {
 	private OfertaRepository ofertaRepository;
 	@Autowired
 	private ControllerUtils controllerUtils;
+	@Autowired
+	private SortApiService sortApiService;
+	@Autowired
+	private VectorEmpresaService vectorEmpresaService;
 
 	//RF11	Postulación de empresas de autotransporte
 	@PostMapping("/transporte/postulacion")
@@ -120,11 +127,23 @@ public class PostulacionController {
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
 			try {
 				Oferta o = ofertaRepository.findById(idOferta).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
-				if(controllerUtils.perteneceAlUsuario(u, o))
-					return ControllerUtils.okResponse(
-							getPostulacionDTO(o.getPostulaciones()));
-				else
+				if(!controllerUtils.perteneceAlUsuario(u, o))
 					return ControllerUtils.unauthorisedResponse();
+				
+				PreferenciasEmpresas preferenciasEmpresas = vectorEmpresaService.getPreferenciasEmpresa(
+						o.getRepresentanteCliente().getIdUsuario(),
+						o.getPostulaciones());
+				if (preferenciasEmpresas == null) 
+					return ControllerUtils.okResponse(
+							getPostulacionDTO(o.getPostulaciones())
+							);
+				
+				List<String> recomendedIds = sortApiService.getRecomendations(preferenciasEmpresas);
+				List<PostulacionDTO> recomended = postulacionRepository.findAllByEmpresaTransporte(recomendedIds);
+				List<PostulacionDTO> notRecomended = postulacionRepository.findNotRecomended(recomendedIds, idOferta);
+				recomended.addAll(notRecomended);
+				
+				return ControllerUtils.okResponse(recomended);
 			} catch (Exception e) {
 				return ControllerUtils.exeptionsResponse(e);
 			}

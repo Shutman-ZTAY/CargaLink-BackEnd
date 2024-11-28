@@ -56,4 +56,13 @@ public interface TransportistaRepository extends JpaRepository<Transportista, St
 			@Param("idUsuario") String idUsuario, 
 			@Param("estatus") EstatusTransportista estatus);
 
+	@Query("SELECT CASE WHEN (COUNT(t) > 0) THEN TRUE ELSE FALSE END FROM Transportista t "
+			+ "JOIN t.recursos r "
+			+ "WHERE r.transportista.idUsuario = :idUsuario "
+	        + "AND "
+	        + "r.oferta.idOferta = :idOferta")
+	boolean existByOferta(
+			@Param("idOferta")Integer idOferta,
+			@Param("idUsuario")String idUsuario);
+
 }
