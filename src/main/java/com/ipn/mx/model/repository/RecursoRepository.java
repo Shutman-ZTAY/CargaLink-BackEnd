@@ -14,12 +14,11 @@ import jakarta.transaction.Transactional;
 
 public interface RecursoRepository extends JpaRepository<Recurso, Integer> {
 
-	@Query("SELECT CASE WHEN COUNT(r) = 0 THEN TRUE ELSE FALSE END "
+	@Query("SELECT CASE WHEN COUNT(r) = 1 THEN TRUE ELSE FALSE END "
 			+ "FROM Recurso r "
 			+ "WHERE r.oferta.idOferta = :idOferta "
 			+ "AND r.estatus != com.ipn.mx.model.enumerated.EstatusRecurso.ENTREGADO")
 	boolean areAllRecursosEntregados(@Param("idOferta") Integer idOferta);
-
 	
 	@Transactional
 	@Modifying

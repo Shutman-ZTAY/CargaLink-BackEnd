@@ -224,7 +224,7 @@ public class RecursoController {
 				if(!controllerUtils.perteneceAlUsuario(u, r.getOferta()))
 					return ControllerUtils.unauthorisedResponse();
 				if(estatus.getEstatus() == EstatusRecurso.ENTREGADO) {
-					boolean allFinalized = recursoRepository.areAllRecursosEntregados(idRecurso);
+					boolean allFinalized = recursoRepository.areAllRecursosEntregados(r.getOferta().getIdOferta());
 					if (allFinalized)
 						ofertaRepository.updateEstatusOferta(r.getOferta().getIdOferta(), EstatusOferta.FINALIZADO);
 				}
