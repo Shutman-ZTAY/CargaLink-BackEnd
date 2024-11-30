@@ -8,10 +8,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ipn.mx.model.dto.UsuarioSeguro;
 import com.ipn.mx.model.dto.UsuarioSeguroMensaje;
 import com.ipn.mx.model.enumerated.RolUsuario;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -19,6 +21,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
@@ -66,6 +69,9 @@ public class Usuario implements Serializable, UserDetails {
     @Column(name = "rol", nullable = false)
     private RolUsuario rol;
     
+    @JsonIgnore
+    @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PasswordResetToken passwordResetToken;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
