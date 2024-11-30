@@ -45,7 +45,7 @@ public class Empresa implements Serializable {
     @Column(name = "direccion", length = 100, nullable = true)
     private String direccion;
 
-    @Column(name = "logo", length = 60, nullable = true)
+    @Column(name = "logo", length = 500, nullable = true)
     private String logo;
 	
     @JsonIgnore
