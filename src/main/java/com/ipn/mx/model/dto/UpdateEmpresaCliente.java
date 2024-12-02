@@ -1,5 +1,18 @@
 package com.ipn.mx.model.dto;
 
-public class UpdateEmpresaCliente {
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UpdateEmpresaCliente {
+	private String nombreComercial;
+	private String rfc;
+	private String direccion;
+	private String descripcion;
+	private String password;
 }

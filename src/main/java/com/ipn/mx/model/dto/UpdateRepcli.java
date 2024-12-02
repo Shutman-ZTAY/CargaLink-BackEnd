@@ -17,4 +17,5 @@ public class UpdateRepcli {
 	private String correo;
 	private String telefono;
 	private String password;
+	private String newpass;
 }

@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ipn.mx.model.dto.RepresentanteClienteSeguro;
 import com.ipn.mx.model.dto.RepresentanteTransporteSeguro;
+import com.ipn.mx.model.dto.UpdateEmpresaCliente;
 import com.ipn.mx.model.dto.UpdateEmpresaTransporte;
+import com.ipn.mx.model.dto.UpdateRepcli;
 import com.ipn.mx.model.dto.UpdateReptrans;
+import com.ipn.mx.model.entity.Empresa;
 import com.ipn.mx.model.entity.EmpresaAutotransporte;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
@@ -147,5 +150,81 @@ public class PerfilesRepresentantesController {
 			}
 		} else
 			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	@PutMapping("/cliente/modificar")
+	public ResponseEntity<?> updateRepCliInfo(@RequestBody UpdateRepcli updateRepcli){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
+			Usuario u = (Usuario) auth.getPrincipal();
+			try {
+			RepresentanteCliente rc = 
+					rcr.findById(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
+			
+					if(!pe.matches(updateRepcli.getPassword(), u.getPassword())) {
+						return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Contraseña Incorrecta");
+					}
+					String newNombre = rc.getNombre();
+					String newPrimerApellido = rc.getPrimerApellido();
+					String newSegundoApellido = rc.getSegundoApellido();
+					String newCorreo = rc.getCorreo();
+					String newTelefono = rc.getTelefono();
+					String newPassword = rc.getPassword();
+					if(updateRepcli.getNombre() != null)
+						newNombre = updateRepcli.getNombre();
+					if(updateRepcli.getPrimerApellido() != null)
+						newPrimerApellido = updateRepcli.getPrimerApellido();
+					if(updateRepcli.getSegundoApellido() != null)
+						newSegundoApellido = updateRepcli.getSegundoApellido();
+					if(updateRepcli.getCorreo() != null)
+						newCorreo = updateRepcli.getCorreo();
+					if(updateRepcli.getTelefono() != null)
+						newTelefono = updateRepcli.getTelefono();
+					if(updateRepcli.getNewpass() != null)
+						newPassword = pe.encode(updateRepcli.getNewpass());
+					rcr.updateRepcli(u.getIdUsuario(), newPassword, newTelefono, newNombre, newPrimerApellido, newSegundoApellido, newCorreo);
+					return ResponseEntity.ok(null);
+			}catch(Exception e){
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
+	
+	@PutMapping("/cliente/modificar/empresa")
+	public ResponseEntity<?> updateEmpCliInfo(@RequestBody UpdateEmpresaCliente updateEmpresaCliente){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.REPRESENTANTE_CLIENTE)) {
+			Usuario u = (Usuario) auth.getPrincipal();
+			try {
+			RepresentanteCliente rc = 
+					rcr.findById(u.getIdUsuario()).orElseThrow(() -> new NoSuchElementException("Recurso no encontrado"));
+					if(!pe.matches(updateEmpresaCliente.getPassword(), u.getPassword())) {
+						return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Contraseña Incorrecta");
+					}
+			Empresa ec = rc.getEmpresaCliente();
+					String newNombreComercial = ec.getNombreComercial();
+					String newRFC = ec.getRfc();
+					String newDireccion = ec.getDireccion();
+					String newDescripcion = ec.getDescripcion();
+					
+					if(updateEmpresaCliente.getNombreComercial()!=null)
+						newNombreComercial = updateEmpresaCliente.getNombreComercial();
+					if(updateEmpresaCliente.getRfc()!=null)
+						newRFC = updateEmpresaCliente.getRfc();
+					if(updateEmpresaCliente.getDireccion()!=null) 
+						newDireccion = updateEmpresaCliente.getDireccion();
+					if(updateEmpresaCliente.getDescripcion()!=null)
+						newDescripcion = updateEmpresaCliente.getDescripcion();
+					
+					er.updateEmpresaCliente(ec.getRazonSocial(), newNombreComercial, newRFC, newDireccion, newDescripcion);
+					return ResponseEntity.ok(null);
+			}catch(Exception e){
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
 	}
 }

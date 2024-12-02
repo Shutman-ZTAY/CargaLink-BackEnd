@@ -23,8 +23,7 @@ public interface EmpresaAutotransporteRepository extends JpaRepository<EmpresaAu
 	    @Param("nombreComercial") String nombreComercial,
 	    @Param("rfc") String rfc,
 	    @Param("direccion") String direccion,
-	    @Param("descripcion") String descripcion,
-
+	    @Param("descripcion") String descripcion
 	);
 	
 	@Query("SELECT ea FROM EmpresaAutotransporte ea WHERE ea.documentoFiscal = :documentoFiscal")
