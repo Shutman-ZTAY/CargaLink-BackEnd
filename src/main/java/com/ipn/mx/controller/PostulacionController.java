@@ -28,7 +28,7 @@ import com.ipn.mx.model.enumerated.EstatusOferta;
 import com.ipn.mx.model.enumerated.RolUsuario;
 import com.ipn.mx.model.repository.OfertaRepository;
 import com.ipn.mx.model.repository.PostulacionRepository;
-import com.ipn.mx.service.interfaces.SortApiService;
+import com.ipn.mx.service.interfaces.IAApiService;
 import com.ipn.mx.service.interfaces.VectorEmpresaService;
 
 @RestController
@@ -42,7 +42,7 @@ public class PostulacionController {
 	@Autowired
 	private ControllerUtils controllerUtils;
 	@Autowired
-	private SortApiService sortApiService;
+	private IAApiService iAApiService;
 	@Autowired
 	private VectorEmpresaService vectorEmpresaService;
 
@@ -138,7 +138,7 @@ public class PostulacionController {
 							getPostulacionDTO(o.getPostulaciones())
 							);
 				
-				List<String> recomendedIds = sortApiService.getRecomendations(preferenciasEmpresas);
+				List<String> recomendedIds = iAApiService.getRecomendations(preferenciasEmpresas);
 				List<PostulacionDTO> recomended = postulacionRepository.findAllByEmpresaTransporte(recomendedIds);
 				List<PostulacionDTO> notRecomended = postulacionRepository.findNotRecomended(recomendedIds, idOferta);
 				recomended.addAll(notRecomended);
