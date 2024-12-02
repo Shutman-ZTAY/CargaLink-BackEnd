@@ -1,6 +1,7 @@
 package com.ipn.mx.service.implementation;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -48,9 +49,10 @@ public class EmailServiceImpl implements EmailService {
 		PasswordResetToken prt = PasswordResetToken.builder().usuario(usuario).build();
 		prt = passwordResetTokenRepository.save(prt);
 		
-		String template = new String(Files.readAllBytes(Paths.get(TEMPLATE_PATH)));
-		template.replace("https://tusitio.com/reset-password?token=TU_TOKEN_UNICO", FRONT_LINK + "/reset-password?token=" + prt.getToken());
-		
+		String template = Files.readString(Paths.get(TEMPLATE_PATH), StandardCharsets.UTF_8);
+		template = template.replace("\n", "").replace("\r", "");
+		template = template.replace("https://tusitio.com/reset-password?token=TU_TOKEN_UNICO", FRONT_LINK + "/reset-password?token=" + prt.getToken());
+		System.out.println(template);
 		MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
