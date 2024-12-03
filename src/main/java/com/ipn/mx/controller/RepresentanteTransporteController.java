@@ -73,6 +73,24 @@ public class RepresentanteTransporteController {
 	}
 	
 	@GetMapping("/administrador/RepTrans")
+	public ResponseEntity<?> viewAllNotValidRepTrans(){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.ADMINISTRADOR)) {
+			try {
+				List<RepresentanteTransporte> lrt = rtr.findAllNotValid();
+				List<RepresentanteTransporteSeguro> lrtDto = new ArrayList<RepresentanteTransporteSeguro>(); 
+				for (RepresentanteTransporte representanteTransporte : lrt) {
+					lrtDto.add(RepresentanteTransporteSeguro.usuarioToUsuarioSeguro(representanteTransporte));
+				}
+				return ControllerUtils.okResponse(lrtDto);
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+		}else
+			return ControllerUtils.unauthorisedResponse();
+	}
+	
+	@GetMapping("/administrador/RepTrans/all")
 	public ResponseEntity<?> viewAllRepTrans(){
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		if (ControllerUtils.isAuthorised(auth, RolUsuario.ADMINISTRADOR)) {
