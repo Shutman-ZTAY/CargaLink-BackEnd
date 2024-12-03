@@ -1,7 +1,5 @@
 package com.ipn.mx.model.dto;
 
-import com.ipn.mx.model.enumerated.EstatusTransportista;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UpdateTransportista {
-	
-	private String password;
+public class UpdateReptrans {
+	private String nombre;
+	private String primerApellido;
+	private String segundoApellido;
+	private String correo;
 	private String telefono;
-	private EstatusTransportista estatusTransportista;
-	private String verifyPass;
+	private String password;
+	private String newpass;
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,6 +55,7 @@ public class TransportistasController {
 	private ChatRepository chatRepository;
 	@Autowired
 	private MensajeRepository mensajeRepository;
+
 
 	//RF05	Crear cuentas para transportistas
 	@PostMapping("/representante/transporte/transportista")
@@ -212,7 +214,39 @@ public class TransportistasController {
 			return ControllerUtils.unauthorisedResponse();
 		}
 	}
-	
+	@PutMapping("/transportista/gestion")
+	public ResponseEntity<?> updateTransportistaInfo(@RequestBody UpdateTransportista updateTransportista){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		
+		if (ControllerUtils.isAuthorised(auth, RolUsuario.TRANSPORTISTA)) {
+			Transportista transportistaAuth = (Transportista) auth.getPrincipal();
+			try {
+				transportistaAuth = tr.findById(transportistaAuth.getIdUsuario()).orElseThrow(()->
+							new IllegalArgumentException("Usuario no encontrado"));
+						if(!pe.matches(updateTransportista.getVerifyPass(), transportistaAuth.getPassword())) {
+							return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Contraseña Incorrecta");
+						}
+				String newPassword = transportistaAuth.getPassword();
+				String newTelefono = transportistaAuth.getTelefono();
+				EstatusTransportista newEstatus = transportistaAuth.getEstatusTransportista();
+				
+				if (updateTransportista.getPassword() != null)
+					newPassword = pe.encode(updateTransportista.getPassword());
+				if (updateTransportista.getTelefono() != null) 
+					newTelefono = updateTransportista.getTelefono();
+				if (updateTransportista.getEstatusTransportista() != null)
+					newEstatus = updateTransportista.getEstatusTransportista();
+				
+				tr.updateTransportista(transportistaAuth.getIdUsuario(), newPassword, newTelefono, newEstatus);
+				return ResponseEntity.ok(null);
+			} catch (Exception e) {
+				return ControllerUtils.exeptionsResponse(e);
+			}
+			
+		} else {
+			return ControllerUtils.unauthorisedResponse();
+		}
+	}
 	private List<TransportistaSeguro> findTransportistasByEmpresa(String razonSocial) {
 		List<SedeDTO> ls = sr.findAllSedesByEmpresaTransporte(razonSocial);
 		List<Integer> idSedes = new ArrayList<>();

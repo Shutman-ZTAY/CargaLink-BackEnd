@@ -19,7 +19,6 @@ public interface RecursoRepository extends JpaRepository<Recurso, Integer> {
 			+ "WHERE r.oferta.idOferta = :idOferta "
 			+ "AND r.estatus != com.ipn.mx.model.enumerated.EstatusRecurso.ENTREGADO")
 	boolean areAllRecursosEntregados(@Param("idOferta") Integer idOferta);
-
 	
 	@Transactional
 	@Modifying
