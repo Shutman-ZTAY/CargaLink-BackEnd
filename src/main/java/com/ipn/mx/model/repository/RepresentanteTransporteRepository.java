@@ -12,7 +12,7 @@ import com.ipn.mx.model.enumerated.EstatusRepTrans;
 public interface RepresentanteTransporteRepository extends JpaRepository<RepresentanteTransporte, String> {
 	
 	@Query("SELECT rt FROM RepresentanteTransporte rt "
-			+ "WHERE rt.estatus = EstatusRepTrans.VALIDO")
+			+ "WHERE rt.estatusRepTrans = EstatusRepTrans.VALIDO")
 	List<RepresentanteTransporte> findAllNotValid();
 
 	@Query("SELECT CASE WHEN (COUNT(rt) > 0) THEN TRUE ELSE FALSE END FROM RepresentanteTransporte rt "
