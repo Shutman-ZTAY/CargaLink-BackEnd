@@ -12,6 +12,10 @@ import com.ipn.mx.model.entity.PasswordResetToken;
 import jakarta.transaction.Transactional;
 
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Integer> {
+	
+	@Query("SELECT prt FROM PasswordResetToken prt "
+			+ "WHERE prt.usuario.idUsuario = :idUsuario")
+	Optional<PasswordResetToken> findByUsuario(@Param("idUsuario") String idUsuario);
 
 	@Query("SELECT prt FROM PasswordResetToken prt "
 			+ "WHERE prt.token = :token")

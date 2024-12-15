@@ -46,6 +46,12 @@ public class EmailServiceImpl implements EmailService {
 
 	@Override
 	public void sendResetPassworMail(Usuario usuario) throws MessagingException, IOException {
+		PasswordResetToken prtBD = passwordResetTokenRepository.findByUsuario(usuario.getIdUsuario()).orElse(null);
+		if (prtBD != null) {
+			passwordResetTokenRepository.deleteByToken(prtBD.getToken());
+			System.out.println("El objeto de la base de datos no es nulo: " + prtBD.getId());
+		}
+		
 		PasswordResetToken prt = PasswordResetToken.builder().usuario(usuario).build();
 		prt = passwordResetTokenRepository.save(prt);
 		

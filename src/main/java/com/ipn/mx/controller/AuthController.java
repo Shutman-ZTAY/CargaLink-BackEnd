@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,11 +15,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.ipn.mx.model.dto.Email;
 import com.ipn.mx.model.dto.LoginUsuario;
+import com.ipn.mx.model.dto.NewPassword;
+import com.ipn.mx.model.entity.PasswordResetToken;
 import com.ipn.mx.model.entity.RepresentanteCliente;
 import com.ipn.mx.model.entity.RepresentanteTransporte;
 import com.ipn.mx.model.entity.Usuario;
 import com.ipn.mx.model.enumerated.EstatusRepTrans;
 import com.ipn.mx.model.enumerated.RolUsuario;
+import com.ipn.mx.model.repository.PasswordResetTokenRepository;
 import com.ipn.mx.model.repository.UsuarioRepository;
 import com.ipn.mx.service.interfaces.AuthService;
 import com.ipn.mx.service.interfaces.EmailService;
@@ -36,6 +40,10 @@ public class AuthController {
 	private UsuarioRepository usuarioRepository;
 	@Autowired
 	private EmailService emailService;
+	@Autowired
+	private PasswordResetTokenRepository prtr;
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	// Cambiar contraseña si la olvido el usuario
 	@PostMapping(value = "/reset-password-mail")
@@ -43,6 +51,23 @@ public class AuthController {
 		try {
 			Usuario u = usuarioRepository.findUsuarioByCorreo(email.getEmail()).orElseThrow(() -> new NoSuchElementException("El usuario no existe"));
 			emailService.sendResetPassworMail(u);
+			return ControllerUtils.okResponse();
+		} catch (Exception e) {
+			String mensajeError = "Error interno en el servidor: " + e.getCause() + ": " + e.getMessage();
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
+		}
+	}
+	
+	@PostMapping(value = "/reset-password")
+	public ResponseEntity<?> resetPassword(@RequestBody NewPassword newPassword) {
+		try {
+			PasswordResetToken prt = prtr.findByToken(newPassword.getToken()).orElseThrow(() -> new NoSuchElementException("Token no valido"));
+			prtr.deleteByToken(prt.getToken());
+			
+			Usuario u = prt.getUsuario();
+			u.setPassword(passwordEncoder.encode(newPassword.getPassword()));
+			usuarioRepository.save(u);
 			return ControllerUtils.okResponse();
 		} catch (Exception e) {
 			String mensajeError = "Error interno en el servidor: " + e.getMessage();
