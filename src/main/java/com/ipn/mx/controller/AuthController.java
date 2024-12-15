@@ -53,7 +53,8 @@ public class AuthController {
 			emailService.sendResetPassworMail(u);
 			return ControllerUtils.okResponse();
 		} catch (Exception e) {
-			String mensajeError = "Error interno en el servidor: " + e.getMessage();
+			String mensajeError = "Error interno en el servidor: " + e.getCause() + ": " + e.getMessage();
+			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(mensajeError);
 		}
 	}
@@ -62,6 +63,8 @@ public class AuthController {
 	public ResponseEntity<?> resetPassword(@RequestBody NewPassword newPassword) {
 		try {
 			PasswordResetToken prt = prtr.findByToken(newPassword.getToken()).orElseThrow(() -> new NoSuchElementException("Token no valido"));
+			prtr.deleteByToken(prt.getToken());
+			
 			Usuario u = prt.getUsuario();
 			u.setPassword(passwordEncoder.encode(newPassword.getPassword()));
 			usuarioRepository.save(u);
