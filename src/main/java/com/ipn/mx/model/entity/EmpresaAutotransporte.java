@@ -27,7 +27,7 @@ public class EmpresaAutotransporte extends Empresa{
 
 	private static final long serialVersionUID = 1L;
 	
-	@Column(name = "documentoFiscal", length = 80, nullable = true)
+	@Column(name = "documentoFiscal", length = 500, nullable = true)
 	private String documentoFiscal;
 	
 	@OneToMany(mappedBy = "empresaTransporte", cascade = CascadeType.ALL, orphanRemoval = true)

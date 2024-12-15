@@ -14,11 +14,13 @@ import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ipn.mx.model.dto.ChatbotResponse;
 import com.ipn.mx.model.dto.PreferenciasEmpresas;
-import com.ipn.mx.service.interfaces.SortApiService;
+import com.ipn.mx.model.dto.UseChatbot;
+import com.ipn.mx.service.interfaces.IAApiService;
 
 @Service
-public class SortApiServiceImpl implements SortApiService {
+public class IAApiServiceImpl implements IAApiService {
 	
 	@Value("${api.python.ia}")
 	private String API_URL;
@@ -40,6 +42,26 @@ public class SortApiServiceImpl implements SortApiService {
 
 		List<String> idEmpresas = response.getBody();
 		return idEmpresas;
+	}
+	
+	@Override
+	public ChatbotResponse useChatbot(String question) throws JsonProcessingException {
+		UseChatbot requestBody = new UseChatbot(question); 
+		ObjectMapper mapper = new ObjectMapper();
+		String json = mapper.writeValueAsString(requestBody);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<ChatbotResponse> response = restTemplate.exchange(
+		    API_URL + "/chatbot",
+		    HttpMethod.POST,
+		    new HttpEntity<>(json, headers),
+		    ChatbotResponse.class
+		);
+
+		ChatbotResponse chatbotResponse = response.getBody();
+		return chatbotResponse;
 	}
 
 }
