@@ -89,7 +89,7 @@ public class ChatController {
 				return ControllerUtils.exeptionsResponse(e);
 			}
 		}
-	
+		
 		@GetMapping("mensajes/{chatId}")
 		public ResponseEntity<?> obtenerMensajes(@PathVariable Integer chatId){
 			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
