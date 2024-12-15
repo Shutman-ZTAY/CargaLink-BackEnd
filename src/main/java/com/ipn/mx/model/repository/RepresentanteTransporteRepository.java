@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.ipn.mx.model.entity.RepresentanteTransporte;
-import com.ipn.mx.model.enumerated.EstatusRepTrans;
 
 public interface RepresentanteTransporteRepository extends JpaRepository<RepresentanteTransporte, String> {
 	
