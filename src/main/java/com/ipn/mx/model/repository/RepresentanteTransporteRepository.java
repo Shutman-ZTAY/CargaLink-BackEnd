@@ -1,5 +1,7 @@
 package com.ipn.mx.model.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,6 +28,10 @@ public interface RepresentanteTransporteRepository extends JpaRepository<Represe
 	    @Param("segundoApellido") String segundoApellido,
 	    @Param("correo") String correo
 	);
+	
+	@Query("SELECT rt FROM RepresentanteTransporte rt "
+			+ "WHERE rt.estatusRepTrans = EstatusRepTrans.NO_VALIDO")
+	List<RepresentanteTransporte> findAllNotValid();
 	
 	@Query("SELECT CASE WHEN (COUNT(rt) > 0) THEN TRUE ELSE FALSE END FROM RepresentanteTransporte rt "
 			+ "JOIN rt.postulaciones p "
