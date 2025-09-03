@@ -91,9 +91,9 @@ The system supports **role-based access control (RBAC)** with four main roles:
 
 ---
 ## Contact
-Developed as a Bachelor’s Thesis project at the Escuela Superior de Cómputo (ESCOM - IPN)
-Under the supervision of M. en C. Gabriela de Jesús López Ruíz.
--Developers:
+- Developed as a Bachelor’s Thesis project at the Escuela Superior de Cómputo (ESCOM - IPN)
+- Under the supervision of M. en C. Gabriela de Jesús López Ruíz.
+- Developers:
   - [Alejandre Dominguez Alan José](https://github.com/H4d3rach)
   - [Estanislao Castro Ismael](https://github.com/Shutman-ZTAY)
   - [Gil Calderón Karla]()
