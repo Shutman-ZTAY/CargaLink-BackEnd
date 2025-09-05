@@ -96,5 +96,5 @@ The system supports **role-based access control (RBAC)** with four main roles:
 - Developers:
   - [Alejandre Dominguez Alan José](https://github.com/H4d3rach)
   - [Estanislao Castro Ismael](https://github.com/Shutman-ZTAY)
-  - [Gil Calderón Karla]()
+  - [Gil Calderón Karla](https://github.com/karla-gilcal)
 
