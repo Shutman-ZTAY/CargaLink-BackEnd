@@ -12,6 +12,8 @@ This repository contains the **Spring Boot backend** that powers the platform, o
 CargaLink CDMX streamlines the process of finding and hiring freight transport services.  
 It reduces the dependence on intermediaries, promotes transparency, and fosters fair competition among transport companies.  
 
+You can find the frontend repository [here](https://github.com/H4d3rach/CargaLink-Frontend/)
+You can find the ai repository [here](https://github.com/H4d3rach/cargalink-ai/)
 ---
 
 ## User Roles
