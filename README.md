@@ -1,6 +1,6 @@
 # CargaLink CDMX - Backend
 
-Backend service for **CargaLink CDMX**, a web application developed as part of a **Bachelor’s Thesis at ESCOM (IPN)**.  
+Backend service for **CargaLink CDMX**, a web application developed as part of a **Bachelor’s in Science Thesis at ESCOM (IPN)**.  
 The system connects small and medium-sized freight transport companies with businesses requiring cargo services in Mexico City.  
 
 This repository contains the **Spring Boot backend** that powers the platform, offering a secure and scalable API to manage users, companies, cargos, trips, and AI-based services.
